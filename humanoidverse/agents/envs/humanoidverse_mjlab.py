@@ -390,7 +390,7 @@ def make_mjlab_ufo_env_cfg(
     xml_path = xml_path if xml_path.is_absolute() else Path(HUMANOIDVERSE_DIR).parent / xml_path
     if not xml_path.exists():
         raise FileNotFoundError(f"MJCF asset not found: {xml_path}")
-    if "actuatorfrcrange" in xml_path.read_text():
+    if "actuatorfrcrange" in xml_path.read_text(encoding="utf-8"):
         raise ValueError(f"MJLab robot XML must not contain actuatorfrcrange: {xml_path}")
 
     def spec_fn():

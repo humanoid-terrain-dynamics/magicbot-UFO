@@ -1,0 +1,767 @@
+name: z1_23dof
+xml_path: humanoidverse/data/robots/magicbot_z1_description/mjcf/MAGICBOTZ1.xml
+base_body: pelvis
+root_quat_order: wxyz
+coordinate_system: z_up
+dof_unit: rad
+control_joints:
+  mode: explicit
+  names:
+  - left_hip_pitch_joint
+  - left_hip_roll_joint
+  - left_hip_yaw_joint
+  - left_knee_joint
+  - left_ankle_pitch_joint
+  - left_ankle_roll_joint
+  - right_hip_pitch_joint
+  - right_hip_roll_joint
+  - right_hip_yaw_joint
+  - right_knee_joint
+  - right_ankle_pitch_joint
+  - right_ankle_roll_joint
+  - waist_yaw_joint
+  - left_shoulder_pitch_joint
+  - left_shoulder_roll_joint
+  - left_shoulder_yaw_joint
+  - left_elbow_joint
+  - left_wrist_yaw_joint
+  - right_shoulder_pitch_joint
+  - right_shoulder_roll_joint
+  - right_shoulder_yaw_joint
+  - right_elbow_joint
+  - right_wrist_yaw_joint
+feet: &id001
+- left_ankle_roll_link
+- right_ankle_roll_link
+hands:
+- left_wrist_yaw_link
+- right_wrist_yaw_link
+key_bodies:
+- pelvis
+- left_hip_roll_link
+- left_knee_link
+- left_ankle_roll_link
+- right_hip_roll_link
+- right_knee_link
+- right_ankle_roll_link
+- torso_link
+- left_shoulder_roll_link
+- left_elbow_link
+- left_wrist_yaw_link
+- right_shoulder_roll_link
+- right_elbow_link
+- right_wrist_yaw_link
+default_dof_pos:
+  left_hip_pitch_joint: -0.3
+  left_hip_roll_joint: 0.0
+  left_hip_yaw_joint: 0.0
+  left_knee_joint: 0.65
+  left_ankle_pitch_joint: -0.3
+  left_ankle_roll_joint: 0.0
+  right_hip_pitch_joint: -0.3
+  right_hip_roll_joint: 0.0
+  right_hip_yaw_joint: 0.0
+  right_knee_joint: 0.65
+  right_ankle_pitch_joint: -0.3
+  right_ankle_roll_joint: 0.0
+  waist_yaw_joint: 0.0
+  left_shoulder_pitch_joint: 0.2
+  left_shoulder_roll_joint: 0.15
+  left_shoulder_yaw_joint: 0.0
+  left_elbow_joint: 1.0
+  left_wrist_yaw_joint: 0.0
+  right_shoulder_pitch_joint: 0.2
+  right_shoulder_roll_joint: -0.15
+  right_shoulder_yaw_joint: 0.0
+  right_elbow_joint: 1.0
+  right_wrist_yaw_joint: 0.0
+training:
+  hydra_robot: z1/z1_23dof_auto
+  hydra_overrides: []
+  semantics:
+    contact_bodies: *id001
+    undesired_contact_bodies:
+    - pelvis
+    - left_hip_pitch_link
+    - left_hip_roll_link
+    - left_hip_yaw_link
+    - right_hip_pitch_link
+    - right_hip_roll_link
+    - right_hip_yaw_link
+    - torso_link
+    - left_shoulder_pitch_link
+    - left_shoulder_roll_link
+    - left_shoulder_yaw_link
+    - right_shoulder_pitch_link
+    - right_shoulder_roll_link
+    - right_shoulder_yaw_link
+    torso_name: torso_link
+    left_ankle_dof_names:
+    - left_ankle_pitch_joint
+    - left_ankle_roll_joint
+    right_ankle_dof_names:
+    - right_ankle_pitch_joint
+    - right_ankle_roll_joint
+  init_state:
+    pos:
+    - 0.0
+    - 0.0
+    - 0.75
+    rot:
+    - 0.0
+    - 0.0
+    - 0.0
+    - 1.0
+    lin_vel:
+    - 0.0
+    - 0.0
+    - 0.0
+    ang_vel:
+    - 0.0
+    - 0.0
+    - 0.0
+    default_joint_angles:
+      left_hip_pitch_joint: -0.3
+      left_hip_roll_joint: 0.0
+      left_hip_yaw_joint: 0.0
+      left_knee_joint: 0.65
+      left_ankle_pitch_joint: -0.3
+      left_ankle_roll_joint: 0.0
+      right_hip_pitch_joint: -0.3
+      right_hip_roll_joint: 0.0
+      right_hip_yaw_joint: 0.0
+      right_knee_joint: 0.65
+      right_ankle_pitch_joint: -0.3
+      right_ankle_roll_joint: 0.0
+      waist_yaw_joint: 0.0
+      left_shoulder_pitch_joint: 0.2
+      left_shoulder_roll_joint: 0.15
+      left_shoulder_yaw_joint: 0.0
+      left_elbow_joint: 1.0
+      left_wrist_yaw_joint: 0.0
+      right_shoulder_pitch_joint: 0.2
+      right_shoulder_roll_joint: -0.15
+      right_shoulder_yaw_joint: 0.0
+      right_elbow_joint: 1.0
+      right_wrist_yaw_joint: 0.0
+  control:
+    action_scale: 0.25
+    action_clip_value: 5.0
+    normalize_action_to: 5.0
+    effort_limit_scale: 1.0
+    effort_limit:
+    - 120.0
+    - 120.0
+    - 120.0
+    - 120.0
+    - 80.0
+    - 20.0
+    - 120.0
+    - 120.0
+    - 120.0
+    - 120.0
+    - 80.0
+    - 20.0
+    - 120.0
+    - 50.0
+    - 50.0
+    - 50.0
+    - 50.0
+    - 50.0
+    - 50.0
+    - 50.0
+    - 50.0
+    - 50.0
+    - 50.0
+    velocity_limit:
+    - 35.0
+    - 35.0
+    - 35.0
+    - 35.0
+    - 18.0
+    - 18.0
+    - 35.0
+    - 35.0
+    - 35.0
+    - 35.0
+    - 18.0
+    - 18.0
+    - 35.0
+    - 18.0
+    - 18.0
+    - 18.0
+    - 18.0
+    - 18.0
+    - 18.0
+    - 18.0
+    - 18.0
+    - 18.0
+    - 18.0
+    stiffness:
+      left_hip_pitch_joint: 113.05668951160408
+      left_hip_roll_joint: 113.05668951160408
+      left_hip_yaw_joint: 113.05668951160408
+      left_knee_joint: 113.05668951160408
+      left_ankle_pitch_joint: 118.67212331869844
+      left_ankle_roll_joint: 118.67212331869844
+      right_hip_pitch_joint: 113.05668951160408
+      right_hip_roll_joint: 113.05668951160408
+      right_hip_yaw_joint: 113.05668951160408
+      right_knee_joint: 113.05668951160408
+      right_ankle_pitch_joint: 118.67212331869844
+      right_ankle_roll_joint: 118.67212331869844
+      waist_yaw_joint: 113.05668951160408
+      left_shoulder_pitch_joint: 59.33606165934922
+      left_shoulder_roll_joint: 59.33606165934922
+      left_shoulder_yaw_joint: 59.33606165934922
+      left_elbow_joint: 59.33606165934922
+      left_wrist_yaw_joint: 59.33606165934922
+      right_shoulder_pitch_joint: 59.33606165934922
+      right_shoulder_roll_joint: 59.33606165934922
+      right_shoulder_yaw_joint: 59.33606165934922
+      right_elbow_joint: 59.33606165934922
+      right_wrist_yaw_joint: 59.33606165934922
+    damping:
+      left_hip_pitch_joint: 7.1974123941509704
+      left_hip_roll_joint: 7.1974123941509704
+      left_hip_yaw_joint: 7.1974123941509704
+      left_knee_joint: 7.1974123941509704
+      left_ankle_pitch_joint: 7.554902013352734
+      left_ankle_roll_joint: 7.554902013352734
+      right_hip_pitch_joint: 7.1974123941509704
+      right_hip_roll_joint: 7.1974123941509704
+      right_hip_yaw_joint: 7.1974123941509704
+      right_knee_joint: 7.1974123941509704
+      right_ankle_pitch_joint: 7.554902013352734
+      right_ankle_roll_joint: 7.554902013352734
+      waist_yaw_joint: 7.1974123941509704
+      left_shoulder_pitch_joint: 3.777451006676367
+      left_shoulder_roll_joint: 3.777451006676367
+      left_shoulder_yaw_joint: 3.777451006676367
+      left_elbow_joint: 3.777451006676367
+      left_wrist_yaw_joint: 3.777451006676367
+      right_shoulder_pitch_joint: 3.777451006676367
+      right_shoulder_roll_joint: 3.777451006676367
+      right_shoulder_yaw_joint: 3.777451006676367
+      right_elbow_joint: 3.777451006676367
+      right_wrist_yaw_joint: 3.777451006676367
+  actuator:
+    source: yaml
+    joints:
+      left_hip_pitch_joint:
+        effort_limit: 120.0
+        velocity_limit: 35.0
+        armature: 0.057275188
+        friction: 0.0
+        damping: 0.0
+      left_hip_roll_joint:
+        effort_limit: 120.0
+        velocity_limit: 35.0
+        armature: 0.057275188
+        friction: 0.0
+        damping: 0.0
+      left_hip_yaw_joint:
+        effort_limit: 120.0
+        velocity_limit: 35.0
+        armature: 0.057275188
+        friction: 0.0
+        damping: 0.0
+      left_knee_joint:
+        effort_limit: 120.0
+        velocity_limit: 35.0
+        armature: 0.057275188
+        friction: 0.0
+        damping: 0.0
+      left_ankle_pitch_joint:
+        effort_limit: 80.0
+        velocity_limit: 18.0
+        armature: 0.03006
+        friction: 0.0
+        damping: 0.0
+      left_ankle_roll_joint:
+        effort_limit: 20.0
+        velocity_limit: 18.0
+        armature: 0.03006
+        friction: 0.0
+        damping: 0.0
+      right_hip_pitch_joint:
+        effort_limit: 120.0
+        velocity_limit: 35.0
+        armature: 0.057275188
+        friction: 0.0
+        damping: 0.0
+      right_hip_roll_joint:
+        effort_limit: 120.0
+        velocity_limit: 35.0
+        armature: 0.057275188
+        friction: 0.0
+        damping: 0.0
+      right_hip_yaw_joint:
+        effort_limit: 120.0
+        velocity_limit: 35.0
+        armature: 0.057275188
+        friction: 0.0
+        damping: 0.0
+      right_knee_joint:
+        effort_limit: 120.0
+        velocity_limit: 35.0
+        armature: 0.057275188
+        friction: 0.0
+        damping: 0.0
+      right_ankle_pitch_joint:
+        effort_limit: 80.0
+        velocity_limit: 18.0
+        armature: 0.03006
+        friction: 0.0
+        damping: 0.0
+      right_ankle_roll_joint:
+        effort_limit: 20.0
+        velocity_limit: 18.0
+        armature: 0.03006
+        friction: 0.0
+        damping: 0.0
+      waist_yaw_joint:
+        effort_limit: 120.0
+        velocity_limit: 35.0
+        armature: 0.057275188
+        friction: 0.0
+        damping: 0.0
+      left_shoulder_pitch_joint:
+        effort_limit: 50.0
+        velocity_limit: 18.0
+        armature: 0.022545
+        friction: 0.0
+        damping: 0.0
+      left_shoulder_roll_joint:
+        effort_limit: 50.0
+        velocity_limit: 18.0
+        armature: 0.022545
+        friction: 0.0
+        damping: 0.0
+      left_shoulder_yaw_joint:
+        effort_limit: 50.0
+        velocity_limit: 18.0
+        armature: 0.022545
+        friction: 0.0
+        damping: 0.0
+      left_elbow_joint:
+        effort_limit: 50.0
+        velocity_limit: 18.0
+        armature: 0.022545
+        friction: 0.0
+        damping: 0.0
+      left_wrist_yaw_joint:
+        effort_limit: 50.0
+        velocity_limit: 18.0
+        armature: 0.022545
+        friction: 0.0
+        damping: 0.0
+      right_shoulder_pitch_joint:
+        effort_limit: 50.0
+        velocity_limit: 18.0
+        armature: 0.022545
+        friction: 0.0
+        damping: 0.0
+      right_shoulder_roll_joint:
+        effort_limit: 50.0
+        velocity_limit: 18.0
+        armature: 0.022545
+        friction: 0.0
+        damping: 0.0
+      right_shoulder_yaw_joint:
+        effort_limit: 50.0
+        velocity_limit: 18.0
+        armature: 0.022545
+        friction: 0.0
+        damping: 0.0
+      right_elbow_joint:
+        effort_limit: 50.0
+        velocity_limit: 18.0
+        armature: 0.022545
+        friction: 0.0
+        damping: 0.0
+      right_wrist_yaw_joint:
+        effort_limit: 50.0
+        velocity_limit: 18.0
+        armature: 0.022545
+        friction: 0.0
+        damping: 0.0
+metadata:
+  generated_from_xml: humanoidverse/data/robots/z1/mjcf/MagicBotZ1_23dof.xml
+  generated_by: humanoidverse.tools.robot_inspect
+  review_status: draft_curated_23dof
+  warnings:
+  - MuJoCo XML remains the source of truth for qpos/qvel/action layout and actuator order; URDF is used only for auxiliary
+    draft hints.
+  - Joint 'left_hip_pitch_joint' effort_limit from URDF joint 'left_hip_pitch_joint'.
+  - Joint 'left_hip_pitch_joint' velocity_limit from URDF joint 'left_hip_pitch_joint'.
+  - Joint 'left_hip_roll_joint' effort_limit from URDF joint 'left_hip_roll_joint'.
+  - Joint 'left_hip_roll_joint' velocity_limit from URDF joint 'left_hip_roll_joint'.
+  - Joint 'left_hip_yaw_joint' effort_limit from URDF joint 'left_hip_yaw_joint'.
+  - Joint 'left_hip_yaw_joint' velocity_limit from URDF joint 'left_hip_yaw_joint'.
+  - Joint 'left_knee_joint' effort_limit from URDF joint 'left_knee_joint'.
+  - Joint 'left_knee_joint' velocity_limit from URDF joint 'left_knee_joint'.
+  - Joint 'left_ankle_pitch_joint' effort_limit from URDF joint 'left_ankle_pitch_joint'.
+  - Joint 'left_ankle_pitch_joint' velocity_limit from URDF joint 'left_ankle_pitch_joint'.
+  - Joint 'left_ankle_roll_joint' effort_limit from URDF joint 'left_ankle_roll_joint'.
+  - Joint 'left_ankle_roll_joint' velocity_limit from URDF joint 'left_ankle_roll_joint'.
+  - Joint 'right_hip_pitch_joint' effort_limit from URDF joint 'right_hip_pitch_joint'.
+  - Joint 'right_hip_pitch_joint' velocity_limit from URDF joint 'right_hip_pitch_joint'.
+  - Joint 'right_hip_roll_joint' effort_limit from URDF joint 'right_hip_roll_joint'.
+  - Joint 'right_hip_roll_joint' velocity_limit from URDF joint 'right_hip_roll_joint'.
+  - Joint 'right_hip_yaw_joint' effort_limit from URDF joint 'right_hip_yaw_joint'.
+  - Joint 'right_hip_yaw_joint' velocity_limit from URDF joint 'right_hip_yaw_joint'.
+  - Joint 'right_knee_joint' effort_limit from URDF joint 'right_knee_joint'.
+  - Joint 'right_knee_joint' velocity_limit from URDF joint 'right_knee_joint'.
+  - Joint 'right_ankle_pitch_joint' effort_limit from URDF joint 'right_ankle_pitch_joint'.
+  - Joint 'right_ankle_pitch_joint' velocity_limit from URDF joint 'right_ankle_pitch_joint'.
+  - Joint 'right_ankle_roll_joint' effort_limit from URDF joint 'right_ankle_roll_joint'.
+  - Joint 'right_ankle_roll_joint' velocity_limit from URDF joint 'right_ankle_roll_joint'.
+  - Joint 'waist_yaw_joint' effort_limit from URDF joint 'waist_yaw_joint'.
+  - Joint 'waist_yaw_joint' velocity_limit from URDF joint 'waist_yaw_joint'.
+  - Joint 'left_shoulder_pitch_joint' effort_limit from URDF joint 'left_shoulder_pitch_joint'.
+  - Joint 'left_shoulder_pitch_joint' velocity_limit from URDF joint 'left_shoulder_pitch_joint'.
+  - Joint 'left_shoulder_roll_joint' effort_limit from URDF joint 'left_shoulder_roll_joint'.
+  - Joint 'left_shoulder_roll_joint' velocity_limit from URDF joint 'left_shoulder_roll_joint'.
+  - Joint 'left_shoulder_yaw_joint' effort_limit from URDF joint 'left_shoulder_yaw_joint'.
+  - Joint 'left_shoulder_yaw_joint' velocity_limit from URDF joint 'left_shoulder_yaw_joint'.
+  - Joint 'left_elbow_joint' effort_limit from URDF joint 'left_elbow_joint'.
+  - Joint 'left_elbow_joint' velocity_limit from URDF joint 'left_elbow_joint'.
+  - Joint 'left_wrist_yaw_joint' effort_limit from URDF joint 'left_wrist_yaw_joint'.
+  - Joint 'left_wrist_yaw_joint' velocity_limit from URDF joint 'left_wrist_yaw_joint'.
+  - Joint 'right_shoulder_pitch_joint' effort_limit from URDF joint 'right_shoulder_pitch_joint'.
+  - Joint 'right_shoulder_pitch_joint' velocity_limit from URDF joint 'right_shoulder_pitch_joint'.
+  - Joint 'right_shoulder_roll_joint' effort_limit from URDF joint 'right_shoulder_roll_joint'.
+  - Joint 'right_shoulder_roll_joint' velocity_limit from URDF joint 'right_shoulder_roll_joint'.
+  - Joint 'right_shoulder_yaw_joint' effort_limit from URDF joint 'right_shoulder_yaw_joint'.
+  - Joint 'right_shoulder_yaw_joint' velocity_limit from URDF joint 'right_shoulder_yaw_joint'.
+  - Joint 'right_elbow_joint' effort_limit from URDF joint 'right_elbow_joint'.
+  - Joint 'right_elbow_joint' velocity_limit from URDF joint 'right_elbow_joint'.
+  - Joint 'right_wrist_yaw_joint' effort_limit from URDF joint 'right_wrist_yaw_joint'.
+  - Joint 'right_wrist_yaw_joint' velocity_limit from URDF joint 'right_wrist_yaw_joint'.
+  - Joint 'head_joint' effort_limit from URDF joint 'head_joint'.
+  - Joint 'head_joint' velocity_limit from URDF joint 'head_joint'.
+  - symmetric_dofs_idx is emitted as draft metadata only; current training/inference does not consume it.
+  - No stand/default/home/init keyframe found; using model.qpos0 for default pose.
+  - PD gains generated from 'humanoid' draft template; tune stiffness/damping before training.
+  - This config is XML-derived draft output. Review semantic fields, PD gains, default pose, actuator parameters, contact
+    bodies, and reward/termination-related fields before formal training.
+  urdf_source: humanoidverse\data\robots\z1\urdf\MagicBotZ1_23dof.urdf
+  matched_urdf_joints:
+  - left_hip_pitch_joint
+  - left_hip_roll_joint
+  - left_hip_yaw_joint
+  - left_knee_joint
+  - left_ankle_pitch_joint
+  - left_ankle_roll_joint
+  - right_hip_pitch_joint
+  - right_hip_roll_joint
+  - right_hip_yaw_joint
+  - right_knee_joint
+  - right_ankle_pitch_joint
+  - right_ankle_roll_joint
+  - waist_yaw_joint
+  - left_shoulder_pitch_joint
+  - left_shoulder_roll_joint
+  - left_shoulder_yaw_joint
+  - left_elbow_joint
+  - left_wrist_yaw_joint
+  - right_shoulder_pitch_joint
+  - right_shoulder_roll_joint
+  - right_shoulder_yaw_joint
+  - right_elbow_joint
+  - right_wrist_yaw_joint
+  - head_joint
+  semantic_hints:
+    joints:
+      left_hip_pitch_joint:
+      - hip
+      - left
+      - pelvis
+      left_hip_roll_joint:
+      - hip
+      - left
+      left_hip_yaw_joint:
+      - hip
+      - left
+      left_knee_joint:
+      - hip
+      - knee
+      - left
+      left_ankle_pitch_joint:
+      - ankle
+      - knee
+      - left
+      left_ankle_roll_joint:
+      - ankle
+      - left
+      right_hip_pitch_joint:
+      - hip
+      - pelvis
+      - right
+      right_hip_roll_joint:
+      - hip
+      - right
+      right_hip_yaw_joint:
+      - hip
+      - right
+      right_knee_joint:
+      - hip
+      - knee
+      - right
+      right_ankle_pitch_joint:
+      - ankle
+      - knee
+      - right
+      right_ankle_roll_joint:
+      - ankle
+      - right
+      waist_yaw_joint:
+      - pelvis
+      - torso
+      left_shoulder_pitch_joint:
+      - left
+      - shoulder
+      - torso
+      left_shoulder_roll_joint:
+      - left
+      - shoulder
+      left_shoulder_yaw_joint:
+      - left
+      - shoulder
+      left_elbow_joint:
+      - elbow
+      - left
+      - shoulder
+      left_wrist_yaw_joint:
+      - elbow
+      - left
+      - wrist
+      right_shoulder_pitch_joint:
+      - right
+      - shoulder
+      - torso
+      right_shoulder_roll_joint:
+      - right
+      - shoulder
+      right_shoulder_yaw_joint:
+      - right
+      - shoulder
+      right_elbow_joint:
+      - elbow
+      - right
+      - shoulder
+      right_wrist_yaw_joint:
+      - elbow
+      - right
+      - wrist
+      head_joint:
+      - torso
+    links:
+      pelvis:
+      - pelvis
+      left_hip_pitch_link:
+      - hip
+      - left
+      left_hip_roll_link:
+      - hip
+      - left
+      left_hip_yaw_link:
+      - hip
+      - left
+      left_knee_link:
+      - knee
+      - left
+      left_ankle_pitch_link:
+      - ankle
+      - left
+      left_ankle_roll_link:
+      - ankle
+      - left
+      right_hip_pitch_link:
+      - hip
+      - right
+      right_hip_roll_link:
+      - hip
+      - right
+      right_hip_yaw_link:
+      - hip
+      - right
+      right_knee_link:
+      - knee
+      - right
+      right_ankle_pitch_link:
+      - ankle
+      - right
+      right_ankle_roll_link:
+      - ankle
+      - right
+      torso_link:
+      - torso
+      left_shoulder_pitch_link:
+      - left
+      - shoulder
+      left_shoulder_roll_link:
+      - left
+      - shoulder
+      left_shoulder_yaw_link:
+      - left
+      - shoulder
+      left_elbow_link:
+      - elbow
+      - left
+      left_wrist_yaw_link:
+      - left
+      - wrist
+      right_shoulder_pitch_link:
+      - right
+      - shoulder
+      right_shoulder_roll_link:
+      - right
+      - shoulder
+      right_shoulder_yaw_link:
+      - right
+      - shoulder
+      right_elbow_link:
+      - elbow
+      - right
+      right_wrist_yaw_link:
+      - right
+      - wrist
+  merge_policy:
+    source_of_truth: mujoco_xml
+    urdf_used_for:
+    - effort_limit
+    - velocity_limit
+    - damping
+    - friction
+    - semantic_hints
+    - symmetric_dofs_idx_draft
+    prefer_urdf_limits: false
+    prefer_urdf_dynamics: true
+  symmetric_dofs_idx_draft:
+    pairs:
+    - - left_hip_pitch_joint
+      - right_hip_pitch_joint
+    - - left_hip_roll_joint
+      - right_hip_roll_joint
+    - - left_hip_yaw_joint
+      - right_hip_yaw_joint
+    - - left_knee_joint
+      - right_knee_joint
+    - - left_ankle_pitch_joint
+      - right_ankle_pitch_joint
+    - - left_ankle_roll_joint
+      - right_ankle_roll_joint
+    - - left_shoulder_pitch_joint
+      - right_shoulder_pitch_joint
+    - - left_shoulder_roll_joint
+      - right_shoulder_roll_joint
+    - - left_shoulder_yaw_joint
+      - right_shoulder_yaw_joint
+    - - left_elbow_joint
+      - right_elbow_joint
+    - - left_wrist_yaw_joint
+      - right_wrist_yaw_joint
+    index_pairs:
+    - - 0
+      - 6
+    - - 1
+      - 7
+    - - 2
+      - 8
+    - - 3
+      - 9
+    - - 4
+      - 10
+    - - 5
+      - 11
+    - - 13
+      - 18
+    - - 14
+      - 19
+    - - 15
+      - 20
+    - - 16
+      - 21
+    - - 17
+      - 22
+    unmatched_left_joints: []
+  merged_joint_ranges:
+    left_hip_pitch_joint:
+    - -2.7925
+    - 2.7925
+    left_hip_roll_joint:
+    - -0.524
+    - 2.967
+    left_hip_yaw_joint:
+    - -2.7925
+    - 2.7925
+    left_knee_joint:
+    - 0.0
+    - 2.653
+    left_ankle_pitch_joint:
+    - -0.873
+    - 0.524
+    left_ankle_roll_joint:
+    - -0.262
+    - 0.262
+    right_hip_pitch_joint:
+    - -2.7925
+    - 2.7925
+    right_hip_roll_joint:
+    - -2.967
+    - 0.524
+    right_hip_yaw_joint:
+    - -2.7925
+    - 2.7925
+    right_knee_joint:
+    - 0.0
+    - 2.653
+    right_ankle_pitch_joint:
+    - -0.873
+    - 0.524
+    right_ankle_roll_joint:
+    - -0.262
+    - 0.262
+    waist_yaw_joint:
+    - -2.79
+    - 2.79
+    left_shoulder_pitch_joint:
+    - -2.88
+    - 2.88
+    left_shoulder_roll_joint:
+    - -0.175
+    - 2.2515
+    left_shoulder_yaw_joint:
+    - -2.618
+    - 2.618
+    left_elbow_joint:
+    - -0.96
+    - 2.0944
+    left_wrist_yaw_joint:
+    - -2.618
+    - 2.618
+    right_shoulder_pitch_joint:
+    - -2.88
+    - 2.88
+    right_shoulder_roll_joint:
+    - -2.2515
+    - 0.175
+    right_shoulder_yaw_joint:
+    - -2.618
+    - 2.618
+    right_elbow_joint:
+    - -0.96
+    - 2.0944
+    right_wrist_yaw_joint:
+    - -2.618
+    - 2.618
+    head_joint:
+    - -0.6981
+    - 0.6981
+  notes:
+  - Curated to 23 controlled joints to match magicbot-mimic NPZ joint_pos width; head_joint remains in XML but is not controlled
+    by UFO.
+  - root_quat_order set to wxyz because mimic NPZ root_quat follows MuJoCo qpos quaternion order.
+  - PD/default pose values copied from magicbot-mimic whole_body_tracking/robots/z1.py.

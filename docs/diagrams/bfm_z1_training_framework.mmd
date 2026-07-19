@@ -1,0 +1,153 @@
+flowchart LR
+  %% BFM/UFO Z1 training framework, verified against current UFO source and Z1 configs.
+
+  Start(["训练入口<br/>python -m humanoidverse.train<br/>agent=fb"])
+
+  subgraph Config["1. 配置与数据"]
+    Manifest["motion prior<br/>configs/data/z1_mimic_clean.yaml<br/>44 clean clips"]
+    RobotCfg["robot config<br/>configs/robots/z1_23dof.yaml<br/>23 control joints"]
+    XML["MJCF XML<br/>MAGICBOTZ1.xml<br/>无假手, 到手腕"]
+    Hydra["Hydra task<br/>exp/bfm_zero/bfm_zero<br/>obs/reward/domain rand"]
+  end
+
+  subgraph Build["2. 训练配置组装"]
+    Prepare["prepare_motion_manifest<br/>NPZ -> cached motion PKL<br/>weighted sources"]
+    Spec["load_robot_training_spec<br/>关节顺序, PD, limits, feet, hands"]
+    TrainCfg["TrainConfig<br/>num_envs per rank<br/>buffer_size per rank<br/>distributed world_size"]
+    Preset["build_agent_preset('fb')<br/>FBcprAuxAgent<br/>z_dim=256"]
+  end
+
+  subgraph Env["3. MJLab / MuJoCo-Warp 向量环境"]
+    MjSpec["MjSpec.from_file(XML)<br/>删除 XML actuators"]
+    Actuator["DcMotor position actuators<br/>stiffness/damping/effort<br/>action_scale=0.25"]
+    MotionLib["MotionLibRobot<br/>按 env 采样 motion_id 和 time"]
+    Physics["batched physics step<br/>1024 env/GPU 常用"]
+    Obs["observation dict<br/>state=52<br/>privileged_state=372<br/>last_action=23<br/>history_actor=300"]
+    AuxReward["aux rewards<br/>torque/action_rate/limits<br/>contact/feet_ori/slippage"]
+  end
+
+  subgraph Buffer["4. 数据缓冲"]
+    TrainReplay["train replay buffer<br/>online transitions<br/>obs, action, next_obs, z, aux_rewards"]
+    ExpertReplay["expert_slicer<br/>MotionLib expert transitions<br/>trajectory length=50"]
+    ZBuffer["z_buffer<br/>recent sampled latents"]
+  end
+
+  subgraph Model["5. FBcprAuxModel 网络"]
+    B["Backward encoder B<br/>input: state + privileged_state<br/>output: z in R^256"]
+    F["Forward map F ensemble<br/>input: state + privileged_state + last_action + history_actor + z + action<br/>output: future z value"]
+    Actor["Actor residual MLP<br/>input: state + last_action + history_actor + z<br/>output: 23-dof action distribution"]
+    Disc["Discriminator<br/>input: state + privileged_state + z<br/>output: expert/train reward logit"]
+    Critic["Disc critic Q<br/>input: train obs + z + action<br/>output: Q_disc"]
+    AuxCritic["Aux critic Q_aux<br/>input: train obs + z + action<br/>output: Q_aux"]
+    Target["target networks<br/>B/F/Critic/AuxCritic<br/>soft update"]
+  end
+
+  subgraph Update["6. 每次 agent update"]
+    Batch["sample batch_size=1024<br/>train batch + expert batch"]
+    Encode["encode expert trajectories<br/>B(next_obs) averaged over seq_length=8"]
+    MixZ["sample_mixed_z<br/>20% train goal<br/>60% expert motion<br/>20% uniform"]
+    Relabel["relabel train_z<br/>relabel_ratio=0.8"]
+    LossDisc["update_discriminator<br/>expert vs train + WGAN GP"]
+    LossFB["update_fb<br/>F/B temporal FB objective<br/>orthogonal z regularization"]
+    LossCritic["update_critic<br/>disc reward Bellman target"]
+    LossAux["update_aux_critic<br/>weighted aux reward Bellman target"]
+    LossActor["update_actor<br/>maximize Q_fb + Q_disc + Q_aux<br/>output policy action"]
+  end
+
+  subgraph Dist["7. 多卡执行"]
+    Torchrun["torchrunx launcher<br/>CUDA_VISIBLE_DEVICES=0,6"]
+    Rank["one process per GPU<br/>--num-envs 是每卡 env 数"]
+    AllReduce["average_gradients / average metrics<br/>global envs = num_envs * world_size"]
+  end
+
+  subgraph Out["8. 产物与部署路径"]
+    Ckpt["checkpoint<br/>model + optimizers + normalizers<br/>optional replay buffer"]
+    Eval["tracking evaluation<br/>motion tracking metrics/videos"]
+    Infer["tracking_inference<br/>target motion -> B -> z"]
+    ONNX["export ONNX policy<br/>input actor_obs=631<br/>state+last_action+history_actor+z<br/>output action=23"]
+    Deploy["robot-specific deploy runtime<br/>必须复现同一 XML, joint order,<br/>obs/history/action scaling"]
+  end
+
+  Start --> Manifest
+  Start --> RobotCfg
+  Start --> Hydra
+  Manifest --> Prepare
+  RobotCfg --> Spec
+  XML --> Spec
+  Spec --> TrainCfg
+  Prepare --> TrainCfg
+  Hydra --> TrainCfg
+  TrainCfg --> Preset
+  TrainCfg --> MjSpec
+  MjSpec --> Actuator
+  Actuator --> Physics
+  MotionLib --> Physics
+  Physics --> Obs
+  Physics --> AuxReward
+  Obs --> TrainReplay
+  AuxReward --> TrainReplay
+  MotionLib --> ExpertReplay
+  Preset --> B
+  Preset --> F
+  Preset --> Actor
+  Preset --> Disc
+  Preset --> Critic
+  Preset --> AuxCritic
+  TrainReplay --> Batch
+  ExpertReplay --> Batch
+  Batch --> Encode
+  B --> Encode
+  Encode --> MixZ
+  ZBuffer <--> MixZ
+  MixZ --> Relabel
+  Relabel --> LossDisc
+  Relabel --> LossFB
+  Relabel --> LossCritic
+  Relabel --> LossAux
+  Relabel --> LossActor
+  Disc --> LossDisc
+  F --> LossFB
+  B --> LossFB
+  Disc --> LossCritic
+  Critic --> LossCritic
+  AuxReward --> LossAux
+  AuxCritic --> LossAux
+  Actor --> LossActor
+  F --> LossActor
+  Critic --> LossActor
+  AuxCritic --> LossActor
+  LossDisc --> Target
+  LossFB --> Target
+  LossCritic --> Target
+  LossAux --> Target
+  LossActor --> Target
+  Actor --> Physics
+  Torchrun --> Rank
+  Rank --> TrainCfg
+  Rank --> AllReduce
+  AllReduce --> LossDisc
+  AllReduce --> LossFB
+  AllReduce --> LossCritic
+  AllReduce --> LossAux
+  AllReduce --> LossActor
+  Target --> Ckpt
+  Ckpt --> Eval
+  Ckpt --> Infer
+  B --> Infer
+  Infer --> ONNX
+  Actor --> ONNX
+  ONNX --> Deploy
+
+  classDef config fill:#eef6ff,stroke:#3b82f6,color:#0f172a;
+  classDef env fill:#ecfdf5,stroke:#10b981,color:#052e16;
+  classDef buffer fill:#fff7ed,stroke:#f97316,color:#431407;
+  classDef model fill:#f5f3ff,stroke:#7c3aed,color:#1e1b4b;
+  classDef update fill:#fef2f2,stroke:#ef4444,color:#450a0a;
+  classDef out fill:#f8fafc,stroke:#64748b,color:#0f172a;
+
+  class Manifest,RobotCfg,XML,Hydra,Prepare,Spec,TrainCfg,Preset config;
+  class MjSpec,Actuator,MotionLib,Physics,Obs,AuxReward env;
+  class TrainReplay,ExpertReplay,ZBuffer buffer;
+  class B,F,Actor,Disc,Critic,AuxCritic,Target model;
+  class Batch,Encode,MixZ,Relabel,LossDisc,LossFB,LossCritic,LossAux,LossActor update;
+  class Ckpt,Eval,Infer,ONNX,Deploy,Torchrun,Rank,AllReduce out;

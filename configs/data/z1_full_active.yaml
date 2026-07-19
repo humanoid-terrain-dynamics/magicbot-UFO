@@ -1,0 +1,12 @@
+robot_config: configs/robots/z1_23dof.yaml
+datasets:
+- name: z1_full_active
+  format: robot_state_npz
+  source_path: humanoidverse/data/z1_full_active
+  weight: 1.0
+  auto_build:
+    train_clip_seconds: 12.0
+    clip_stride_seconds: 12.0
+    keep_short: true
+    min_clip_seconds: 1.0
+  fps: 50.0

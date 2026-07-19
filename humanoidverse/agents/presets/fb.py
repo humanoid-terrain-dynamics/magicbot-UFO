@@ -173,7 +173,7 @@ def build_fb_agent(
             update_z_every_step=int(update_z_every_step),
             z_buffer_size=8192,
             rollout_expert_trajectories=True,
-            rollout_expert_trajectories_length=250,
+            rollout_expert_trajectories_length=50,
             rollout_expert_trajectories_percentage=0.5,
             lr_discriminator=1e-05 * lr_scale,
             lr_critic=0.0003 * lr_scale,

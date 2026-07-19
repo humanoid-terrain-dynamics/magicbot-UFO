@@ -1,242 +1,182 @@
-<h1 align="center">
-  UFO：面向人形机器人控制的无监督强化学习框架
-</h1>
+# Magicbot Z1 UFO：23-DoF FB 运动先验
 
-<p align="center">
-  <a href="https://roboparty.github.io/UFO/"><img alt="Website" src="https://img.shields.io/badge/Website-roboparty.github.io%2FUFO-2563eb?style=for-the-badge" /></a>
-  <a href="https://youtu.be/uJPcLdn9sNA"><img alt="Video" src="https://img.shields.io/badge/Video-Demo-7c3aed?style=for-the-badge" /></a>
-  <a href="https://roboparty.github.io/UFO/assets/UFO.pdf"><img alt="PDF" src="https://img.shields.io/badge/PDF-Available-0f766e?style=for-the-badge" /></a>
-</p>
+本仓库是基于 RoboParty Lab UFO 框架扩展的 Magicbot Z1 工作流。当前重点是
+Z1 23-DoF Forward-Backward（FB）训练、运动先验评估、ONNX 导出，以及用于
+检查 44 个学习到的运动先验的本地 MuJoCo 滑条工具。
 
 <p align="center">
   <a href="README.md">English</a> | <a href="README_zh-CN.md">中文</a>
 </p>
 
 <p align="center">
-  <img src="./assets/UFO.png" alt="UFO" height="72" style="vertical-align: middle;" />
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="./assets/rplab_logo.png" alt="ROBO PARTY LAB Logo" height="72" style="vertical-align: middle;" />
+  <img src="./assets/z1_ufo_8x4_labeled.gif" alt="Magicbot Z1 UFO FB motion-tracking results across 32 labeled clips" width="760" />
 </p>
 
-## UFO 是什么？
+## 先看结果
 
-UFO 是一个开源的无监督强化学习人形机器人控制框架。`main` 分支主要用于 MJLab 训练、RobotState 数据导入、tracking/goal/reward inference，以及 ONNX 导出。`deploy` 分支用于 Unitree G1 实机部署和遥操作运行时。
+上面的动图展示了一个 Z1 FB policy 对 clean Z1 motion set 中 32 个标注片段的
+跟踪结果。这个 policy 学到的是 latent-conditioned motion prior：不是为每个
+技能手写一个任务 reward，而是训练一个由 latent 向量 `z` 条件化的统一 actor。
+推理时，参考动作会被 backward encoder 编码成一段 `z` 轨迹，actor 再在仿真中
+跟随这段动作。
 
-当前最完整、测试最充分的路线是 Unitree G1。新机器人适配已经有实验性接口，但需要用户准备目标机器人的 MuJoCo XML、可选 URDF，以及已经 retarget 到该机器人的 RobotState motion data。UFO 不会自动把人类动作或其他机器人的动作 retarget 到新机器人；不同机器人之间也不能直接复用同一个 checkpoint。
+本地交互式查看工具是：
 
-## 当前支持范围
-
-| 功能 | 状态 |
-| --- | --- |
-| G1 训练 | 支持，测试最充分 |
-| RobotState CSV / NPZ / `ufo_pkl` | 支持 |
-| 多数据源 manifest | 支持 |
-| Tracking inference | Robot-config aware |
-| Goal inference | 支持 robot config；非 G1 需要机器人专属 goal JSON |
-| Reward inference | G1 支持完整默认任务；非 G1 当前主要支持 root/locomotion 任务 |
-| 实机部署 / 遥操作 | 使用 [`deploy` 分支](https://github.com/Roboparty/UFO/tree/deploy) |
-| 自动 motion retargeting | 不支持 |
-| 跨机器人复用同一个 checkpoint | 不支持 |
-
-> [!NOTE]
-> `main` 分支：训练、数据导入、推理、ONNX 导出。
-> `deploy` 分支：G1 实机部署和遥操作运行时。
-
-## 路线 A：Unitree G1 快速开始
-
-### 1. 安装环境
-
-```bash
-git clone https://github.com/Roboparty/UFO.git
-cd UFO
+```powershell
+.venv\Scripts\python.exe tools\z1\ufo_44_slider_tk_mujoco.py `
+  --artifact-dir ..\checkpoints\Z1_UFO\compare_hand_vs_nohand\fakehand_32M
 ```
 
-安装 [`uv`](https://docs.astral.sh/uv/)：
+滑条可以选择 motion index `0..43`；Left/Right 微调一个动作，`R` 重置，
+Space 暂停，`Q` 退出。
 
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-source ~/.local/bin/env
+## 从先验到结果
+
+Z1 的结果来自一组整理后的运动先验，而不是手写任务控制器。
+
+| 阶段 | 本地约定 | 产物 |
+| --- | --- | --- |
+| 机器人定义 | `configs/robots/z1_23dof.yaml` 和 Z1 MJCF assets | 23-DoF 关节顺序、PD gains、limits、action scale |
+| 运动先验 | `configs/data/z1_mimic_clean.yaml` | 44 个整理后的 RobotState clips |
+| FB 训练 | `run_train.sh --agent fb --robot-config configs/robots/z1_23dof.yaml` | rolling checkpoint 和评估指标 |
+| Tracking inference | `humanoidverse.tracking_inference` | MP4、`zs_*.pkl`、ONNX policy、`.meta.json` |
+| 本地 sim-to-sim | `tools/z1/deploy_onnx_mujoco.py` | 使用导出 policy 的 plain MuJoCo rollout |
+| 交互式先验浏览器 | `tools/z1/ufo_44_slider_tk_mujoco.py` | 基于 44 条 latent trajectories 的 Tkinter 滑条 |
+
+44-motion slider 会加载四组缓存 motion：
+
+```text
+cache/motion_data/z1_mimic_clean/z1_cyclic_locomotion_train_near10s_ufo.pkl
+cache/motion_data/z1_mimic_clean/z1_atomic_skills_train_near10s_ufo.pkl
+cache/motion_data/z1_mimic_clean/z1_acrobatics_recovery_train_near10s_ufo.pkl
+cache/motion_data/z1_mimic_clean/z1_pose_low_motion_train_near10s_ufo.pkl
 ```
 
-或者：
+启动 slider 前先生成匹配的 latent cache：
 
-```bash
-python -m pip install --user uv
-export PATH="$HOME/.local/bin:$PATH"
+```powershell
+$env:MUJOCO_GL = "glfw"
+$env:PYTHONUTF8 = "1"
+
+.venv\Scripts\python.exe tools\z1\generate_z1_44_latents.py `
+  --model-folder ..\checkpoints\Z1_UFO\z1_mimic_clean_fb_2xa100_1024env_20260716_044447 `
+  --artifact-dir ..\checkpoints\Z1_UFO\compare_hand_vs_nohand\fakehand_32M `
+  --device cpu
 ```
 
-安装项目环境：
+## Z1 产物约定
+
+大 checkpoint、ONNX、视频、latent cache、motion cache 不放进 Git。它们应放在
+仓库父目录的 checkpoint 布局中：
+
+```text
+../checkpoints/Z1_UFO/
+```
+
+公开的 Z1 dataset/checkpoint mirror：
+
+```text
+https://huggingface.co/datasets/PhangHongHao/UFO-Z1
+```
+
+下载当前最好的 Z1 FB checkpoint：
+
+```bash
+hf download PhangHongHao/UFO-Z1 \
+  --repo-type dataset \
+  --local-dir ../checkpoints/Z1_UFO \
+  z1_mimic_clean_fb_2xa100_1024env_20260716_044447/best_so_far.safetensors
+```
+
+如果要做 desktop deployment-style 可视化，需要提供匹配的 ONNX policy 和同目录
+`.meta.json`，例如：
+
+```text
+../checkpoints/Z1_UFO/compare_hand_vs_nohand/fakehand_32M
+```
+
+当前 Z1 ONNX actor 是机器人专属的：
+
+```text
+input:  actor_obs [batch, 631]
+output: action    [batch, 23]
+```
+
+输入向量是：
+
+```text
+actor_obs = state[52] + last_action[23] + history_actor[300] + z[256]
+```
+
+ONNX 旁边的 `.meta.json` 是关节顺序和维度的权威约定。不要把这个 policy 直接
+用于其他机器人，或用于不同 Z1 action layout；这些情况需要重新导出匹配的
+checkpoint。
+
+## 框架路径
+
+Z1 pipeline 的路径是：
+
+```text
+RobotState clips
+  -> Z1 robot config + data manifest
+  -> MJLab / MuJoCo-Warp vectorized training
+  -> FBcprAuxAgent / FBcprAuxModel
+  -> checkpoint + tracking evaluation
+  -> backward encoder z trajectories
+  -> ONNX actor export
+  -> plain MuJoCo deploy and Tkinter slider tools
+```
+
+本地详细文档：
+
+- [Z1 ONNX Deploy Notes](tools/z1/README.md)
+- [Z1 framework diagram](docs/diagrams/bfm_z1_training_framework.svg)
+- [Z1 ONNX sim-to-sim notes](docs/z1_onnx_sim2sim_deploy_notes.md)
+- [Z1 mimic semantic groups](docs/z1_mimic_semantic_groups.md)
+
+## 运行基础项目
+
+本工作流仍使用上游 UFO 的包结构和命令。
+
+安装：
 
 ```bash
 uv sync
 ```
 
-如需使用 W&B：
+常用检查：
 
 ```bash
-uv run wandb login
-# 或者: export WANDB_API_KEY=your_wandb_api_key
+uv run ruff check .
+uv run python -m compileall -q humanoidverse tests
+uv run python tests/test_motion_data_adapter.py
 ```
 
-### 2. 下载 G1 LaFAN 数据
-
-大数据不放在 Git 仓库中。使用下面的命令下载默认的 G1 LaFAN 数据：
-
-```bash
-bash scripts/download_data.sh g1_lafan
-ls -lh humanoidverse/data/lafan_29dof_10s-clipped.pkl
-```
-
-### 3. Smoke test
+Z1 smoke training：
 
 ```bash
 ./run_train.sh \
   --agent fb \
-  --data-manifest configs/data/example_mix.yaml \
+  --robot-config configs/robots/z1_23dof.yaml \
+  --data-manifest configs/data/z1_mimic_clean.yaml \
   --gpu-ids single \
   --smoke \
-  --work-dir /tmp/ufo_smoke_g1
+  --work-dir /tmp/ufo_smoke_z1
 ```
 
-### 4. FB 训练
+## 致谢与上游项目
 
-```bash
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 \
-./run_train.sh \
-  --agent fb \
-  --gpu-ids all \
-  --num-envs 1024 \
-  --num-env-steps 192000000 \
-  --work-dir runs/ufo_fb_g1 \
-  --data-path humanoidverse/data/lafan_29dof_10s-clipped.pkl \
-  --update-z-every-step 100 \
-  --buffer-size 5120000 \
-  --use-wandb \
-  --wandb-run-name ufo_fb_g1
-```
+本仓库直接基于 RoboParty Lab 的 UFO 项目扩展。使用本代码库时，请同时引用并
+链接原项目：
 
-### 5. TeCH 训练
+- 上游仓库：<https://github.com/Roboparty/UFO>
+- 项目主页：<https://roboparty.github.io/UFO/>
+- 论文 PDF：<https://roboparty.github.io/UFO/assets/UFO.pdf>
+- Deploy branch：<https://github.com/Roboparty/UFO/tree/deploy>
 
-```bash
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 \
-./run_train.sh \
-  --agent tech \
-  --gpu-ids all \
-  --num-envs 1024 \
-  --num-env-steps 192000000 \
-  --work-dir runs/ufo_tech_g1 \
-  --data-path humanoidverse/data/lafan_29dof_10s-clipped.pkl \
-  --update-z-every-step 10 \
-  --buffer-size 5120000 \
-  --use-wandb \
-  --wandb-run-name ufo_tech_g1
-```
-
-TeCH 在早期 UFO 版本中曾经叫 TLDR。`--agent tldr` 仍然保留为 `--agent tech` 的兼容 alias，但已经不推荐继续使用。
-
-### 6. Tracking inference
-
-推理时建议使用 full motion sequences，不要使用裁剪后的 training clips：
-
-```bash
-CUDA_VISIBLE_DEVICES=0 \
-uv run python -m humanoidverse.tracking_inference \
-  --model-folder runs/ufo_fb_g1 \
-  --data-path /path/to/full_motions.pkl \
-  --device cuda:0 \
-  --headless \
-  --save-mp4 \
-  --motion-list 0
-```
-
-输出会写到 `<model-folder>/tracking_inference/`。
-
-### 7. ONNX 导出说明
-
-在 tracking inference 命令中加入 `--export-onnx true` 可以导出 robot-config-aware ONNX policy 和 metadata JSON。导出的 ONNX 和当前 checkpoint 的机器人、动作维度、观测维度绑定，不能直接用于其他机器人。
-
-## 路线 B：适配新机器人
-
-这条路线是 experimental。你需要先准备：
-
-1. 目标机器人的 MuJoCo XML；
-2. 可选的匹配 URDF；
-3. 已经适配或 retarget 到目标机器人的 RobotState 数据。
-
-UFO 不负责自动把人类动作或其他机器人动作 retarget 到新机器人。用户需要先通过 `hhtools`、GMR 或自定义 retargeting pipeline 得到目标机器人的 RobotState 数据，再导入 UFO。
-
-### 1. 生成 robot config 草稿
-
-```bash
-uv run python -m humanoidverse.tools.robot_inspect \
-  --xml /path/to/robot.xml \
-  --urdf /path/to/robot.urdf \
-  --name my_robot \
-  --out configs/robots/my_robot.yaml \
-  --hydra-out humanoidverse/config/robot/my_robot/my_robot_auto.yaml
-```
-
-如果没有 URDF，可以省略 `--urdf`。URDF 只是辅助信息；MuJoCo XML 仍然是 qpos/qvel、action layout 和 actuator order 的 source of truth。
-
-### 2. 人工检查 robot config
-
-自动生成的配置只是草稿。大规模训练前必须人工检查 base body、control-joint order、feet、hands、key bodies、initial state、PD gains、actuator limits、contact bodies，以及和 reward/termination 相关的语义。
-
-### 3. 构建 RobotState data manifest
-
-```bash
-uv run python -m humanoidverse.tools.data_build \
-  --robot configs/robots/my_robot.yaml \
-  --source "/path/to/motions/*.csv" \
-  --format robot_state_csv \
-  --name my_motion \
-  --fps 50 \
-  --clip-seconds 10 \
-  --out configs/data/my_motion_auto_build.yaml \
-  --rebuild-cache
-```
-
-无表头 CSV 支持两种格式：`root_pos` xyz、`root_quat` xyzw、随后是 XML/control-joint order 的 DOF position；也可以在最前面增加可选的 `time` 列。
-
-如只想检查 CSV schema，可以先运行 `humanoidverse.tools.data_inspect`。
-
-### 4. Smoke training
-
-```bash
-./run_train.sh \
-  --agent fb \
-  --robot-config configs/robots/my_robot.yaml \
-  --data-manifest configs/data/my_motion_auto_build.yaml \
-  --gpu-ids single \
-  --smoke \
-  --work-dir /tmp/ufo_smoke_my_robot
-```
-
-## 常见注意事项
-
-- G1 是当前最完整、测试最充分的路径。
-- 新机器人适配是 experimental，通常还需要调 controller、reward、contact 和 termination 语义。
-- `main` 分支用于 training、data import、inference、ONNX export。
-- `deploy` 分支当前主要面向 G1 实机部署和遥操作。
-- 非 G1 的 goal inference 需要机器人专属 goal JSON。
-- 非 G1 的 reward inference 当前主要支持 root/locomotion 任务，除非额外补充机器人语义。
-- TeCH 曾经叫 TLDR，`--agent tldr` 仍是兼容 alias。
-- 不同机器人之间不能直接复用同一个 checkpoint。
-
-## 多数据源技能注入
-
-UFO 支持基于 manifest 的多数据源混合。每个数据源之间的采样比例保持固定，prioritized sampling 在每个数据源内部进行。这适合在保持基础动作分布的同时注入少量稀有高敏捷技能，例如 cartwheel。可以参考 `configs/data/example_mix.yaml`。
-
-## 文档链接
-
-- [Import Wizard](docs/import_wizard.md)：RobotState schema、数据检查和数据构建。
-- [Robot-Config Training](docs/robot_config_training.md)：实验性的 robot-aware training 初始化说明。
-- [Training and Inference](docs/TRAIN_INFERENCE.md)：更多训练和推理命令。
-- [Deploy branch](https://github.com/Roboparty/UFO/tree/deploy)：G1 实机部署和遥操作运行时。
-
-## 引用 / 许可证
-
-如果你在研究中使用了 UFO，请引用：
+原始 UFO 项目是面向人形机器人控制的无监督强化学习框架。其 `main` 分支提供
+MJLab 训练、RobotState 导入、tracking/goal/reward inference 和 ONNX 导出。
+上游最完整的路径是 Unitree G1；本仓库在此基础上扩展 Magicbot Z1 实验。
 
 ```bibtex
 @misc{ufo2026,
@@ -247,7 +187,5 @@ UFO 支持基于 manifest 的多数据源混合。每个数据源之间的采样
   note         = {Project page: \url{https://roboparty.github.io/UFO/}}
 }
 ```
-
-在 LaTeX 中，将上述条目加入 `.bib` 文件后，使用 `\cite{ufo2026}` 即可。
 
 License: see [LICENSE](LICENSE).

@@ -1,0 +1,30 @@
+robot_config: configs/robots/z1_23dof.yaml
+datasets:
+- name: z1_acrobatics_review
+  format: robot_state_npz
+  source_path:
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/xiandaiwu__pick000_088660_091160.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/360__pick000_001000_005000.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/360__pick001_004340_006840.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/shuangshouzhuan__pick000_003100_005600.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/shuangshouzhuan__pick001_007440_012440.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/tiyuetui__pick000_006200_008700.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/cekongfan__pick000_004340_006840.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/ceshoufan__pick000_006020_009520.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/ceshoufan__pick001_004340_006840.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/danshoudaoli__pick000_003100_005600.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/danshoudaoli__pick001_001240_003740.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/houshoufan__pick000_006820_009320.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/houshoufan__pick001_004960_007460.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/hudieti__pick000_003100_005600.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/xuanzi__pick000_003720_006220.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/xuanzi__pick001_005580_008080.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/modi__pick000_003720_006220.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/stagesquat__pick001_005160_008660.npz
+  weight: 0.2
+  fps: 50
+  auto_build:
+    train_clip_seconds: 999.0
+    clip_stride_seconds: 999.0
+    keep_short: true
+    min_clip_seconds: 1.0

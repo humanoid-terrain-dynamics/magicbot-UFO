@@ -1,0 +1,86 @@
+robot_config: configs/robots/z1_23dof.yaml
+datasets:
+- name: z1_cyclic_locomotion
+  format: robot_state_npz
+  source_path:
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/aini__pick000_028000_032000.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/aini__pick001_005000_009000.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/chi6__pick000_007000_011000.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/chi6__pick001_021080_026080.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/lalacao__pick000_021080_026080.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/lalacao__pick001_029000_033000.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/lvdong__pick000_009920_014920.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/lvdong__pick001_006200_011200.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/simplerun__pick000_004000_008000.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/simplerun__pick001_007440_009940.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/taiquan__pick000_021080_023580.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/taiquan__pick001_014880_017380.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/xiandaiwu__pick001_097680_100680.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/zhizaoweilai__pick000_053940_056440.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/zhizaoweilai__pick001_065720_068220.npz
+  weight: 1.0
+  fps: 50
+  auto_build:
+    train_clip_seconds: 999.0
+    clip_stride_seconds: 999.0
+    keep_short: true
+    min_clip_seconds: 1.0
+- name: z1_atomic_skills
+  format: robot_state_npz
+  source_path:
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/chaofeng__pick000_005580_008080.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/chaofeng__pick001_002000_006000.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/huantuiti__pick000_003100_005600.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/huantuiti__pick001_001240_003740.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/jiequandao__pick000_014000_018000.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/jiequandao__pick001_017020_020020.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/kick__pick000_000620_003120.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/kick__pick001_002480_004980.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/punch__pick000_000000_002500.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/punch__pick001_000620_003120.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/shanggouquan__pick000_000620_003120.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/shanggouquan__pick001_002260_004760.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/tiyuetui__pick001_004340_006840.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/xiti__pick000_001240_003740.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/xiti__pick001_001480_004480.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/zhuanshen__pick000_005000_009000.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/zhuanshen__pick001_002960_005960.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/zuhequan__pick000_000620_003120.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/zuhequan__pick001_002340_004840.npz
+  weight: 1.0
+  fps: 50
+  auto_build:
+    train_clip_seconds: 999.0
+    clip_stride_seconds: 999.0
+    keep_short: true
+    min_clip_seconds: 1.0
+- name: z1_acrobatics_recovery
+  format: robot_state_npz
+  source_path:
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/cekongfan__pick001_002480_004980.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/hudieti__pick001_001240_003740.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/xuanfengti__pick000_001860_004360.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/xuanfengti__pick001_003700_006700.npz
+  weight: 1.0
+  fps: 50
+  auto_build:
+    train_clip_seconds: 999.0
+    clip_stride_seconds: 999.0
+    keep_short: true
+    min_clip_seconds: 1.0
+- name: z1_pose_low_motion
+  format: robot_state_npz
+  source_path:
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/mabu__pick000_002000_006000.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/mabu__pick001_004960_009960.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/modi__pick001_001480_004480.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/stagesquat__pick000_001240_006240.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/stagestand__pick000_004960_009960.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz_selected/stagestand__pick001_001240_006240.npz
+  weight: 0.5
+  fps: 50
+  auto_build:
+    train_clip_seconds: 999.0
+    clip_stride_seconds: 999.0
+    keep_short: true
+    min_clip_seconds: 1.0

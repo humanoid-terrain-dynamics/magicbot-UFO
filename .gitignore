@@ -13,6 +13,10 @@ _smoke_runs/
 runs/
 cache/
 checkpoint/
+checkpoints/
+logs/
+G1_UFO/
+Z1_UFO/
 tea_debug.log
 *.log
 
@@ -20,9 +24,44 @@ tea_debug.log
 .DS_Store
 .vscode/
 .idea/
-# Generated inference media
-model/
 
-# Downloaded public motion data
+# Generated inference / export directories
+model/
+exported/
+tracking_inference/
+
+# Scratch / temporary working dirs (local mimic review views, contact audits)
+AAAtmp/
+
+# Large artifacts: keep locally or upload to Hugging Face, not GitHub
+*.ckpt
+*.onnx
+*.pth
+*.pt
+*.safetensors
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+*.npy
+*.npz
+*.h5
+*.hdf5
+*.tar
+*.tar.gz
+*.zip
+*.7z
+
+# Pickle/motion/checkpoint artifacts. If a tiny fixture is needed, unignore it explicitly.
+*.pkl
+!humanoidverse/data/examples/**/*.pkl
+!humanoidverse/data/examples/**/*.npz
+
+# Downloaded motion data (external datasets, referenced by configs but not committed)
 humanoidverse/data/lafan_29dof_10s-clipped.pkl
 humanoidverse/data/lafan_29dof.pkl
+
+# Z1 mimic motion clips - part of the z1_mimic dataset
+humanoidverse/data/z1_mimic_robot_state_npz/*.npz
+humanoidverse/data/z1_mimic_robot_state_npz_selected/*.npz
