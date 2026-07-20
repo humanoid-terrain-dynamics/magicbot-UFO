@@ -37,23 +37,22 @@ from __future__ import annotations
 
 import argparse
 import os
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 # Windows: the shell inherits MUJOCO_GL=egl which is invalid here -> glfw works locally.
 os.environ.setdefault("MUJOCO_GL", "glfw")
 
+import tkinter as tk
+
 import joblib
 import mujoco as mj
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont, ImageTk
-import tkinter as tk
 
 # tools/z1/ is sys.path[0] when run as a script, so deploy_onnx_mujoco is importable
 # the same way ufo_44_slider_tk_mujoco.py imports it.
-from deploy_onnx_mujoco import _load_yaml, _make_runtime_xml, _project_root
-
+from deploy_onnx_mujoco import TERRAIN_CHOICES, _load_yaml, _make_runtime_xml, _project_root
+from PIL import Image, ImageDraw, ImageFont, ImageTk
 
 RENDER_WIDTH = 1280
 RENDER_HEIGHT = 720
@@ -167,13 +166,14 @@ class App:
         loop_each: bool = False,
         max_frames: int = 0,
         robot_config: Path | None = None,
+        terrain: str = "plane",
     ) -> None:
         project_root = _project_root()
         robot_cfg_path = robot_config or (project_root / "configs" / "robots" / "z1_23dof.yaml")
         cfg = _load_yaml(robot_cfg_path)
         out_dir = project_root / "cache" / "motion_vis"
         out_dir.mkdir(parents=True, exist_ok=True)
-        runtime_xml = _make_runtime_xml(project_root / cfg["xml_path"], out_dir)
+        runtime_xml = _make_runtime_xml(project_root / cfg["xml_path"], out_dir, terrain=terrain)
 
         self.model = mj.MjModel.from_xml_path(str(runtime_xml))
         self.model.vis.global_.offwidth = RENDER_WIDTH
@@ -574,6 +574,12 @@ def parse_args() -> argparse.Namespace:
         help="Explicit pkl file(s) to browse; overrides --folder.",
     )
     parser.add_argument("--robot-config", type=Path, default=None, help="Robot yaml (default: configs/robots/z1_23dof.yaml).")
+    parser.add_argument(
+        "--terrain",
+        choices=TERRAIN_CHOICES,
+        default="plane",
+        help="plane uses only the robot MJCF floor; gravel removes that floor and adds one hfield.",
+    )
     parser.add_argument("--loop_each", action="store_true", help="Loop each clip until you switch.")
     parser.add_argument("--max_frames", type=int, default=0, help="0 = full clip.")
     return parser.parse_args()
@@ -591,7 +597,13 @@ def main() -> None:
         "[ ] ,. tilt  o auto  f follow  c reset",
         flush=True,
     )
-    App(pkl_files=files, loop_each=args.loop_each, max_frames=args.max_frames, robot_config=args.robot_config).run()
+    App(
+        pkl_files=files,
+        loop_each=args.loop_each,
+        max_frames=args.max_frames,
+        robot_config=args.robot_config,
+        terrain=args.terrain,
+    ).run()
     print("\nDone!")
 
 

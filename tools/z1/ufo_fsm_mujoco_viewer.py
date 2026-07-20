@@ -23,9 +23,9 @@ import mujoco
 import mujoco.viewer
 import numpy as np
 import onnxruntime as ort
-
 from deploy_onnx_mujoco import (
     CLIPS,
+    TERRAIN_CHOICES,
     History,
     _actor_obs,
     _actuator_ids,
@@ -37,7 +37,6 @@ from deploy_onnx_mujoco import (
     _project_root,
     _raw_obs,
 )
-
 
 KEY_TO_STATE = {
     ord("1"): "aini",
@@ -131,6 +130,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--blend-ticks", type=int, default=15)
     parser.add_argument("--start", choices=["IDLE", *sorted(CLIPS.keys())], default="IDLE")
     parser.add_argument(
+        "--terrain",
+        choices=TERRAIN_CHOICES,
+        default="plane",
+        help="plane uses only the robot MJCF floor; gravel removes that floor and adds one hfield.",
+    )
+    parser.add_argument(
         "--reset-to-clip-on-switch",
         action="store_true",
         help="Teleport to the target clip start pose when switching. Useful for debugging, not real-robot faithful.",
@@ -155,7 +160,7 @@ def main() -> None:
     effort = np.asarray(control["effort_limit"], dtype=np.float32)
     action_scale = float(control["action_scale"]) * effort / kp
 
-    runtime_xml = _make_runtime_xml(project_root / cfg["xml_path"], output_dir)
+    runtime_xml = _make_runtime_xml(project_root / cfg["xml_path"], output_dir, terrain=args.terrain)
     model = mujoco.MjModel.from_xml_path(str(runtime_xml))
     model.opt.timestep = 0.002
     data = mujoco.MjData(model)

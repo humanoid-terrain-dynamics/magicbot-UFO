@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
 import os
+import re
 from pathlib import Path
 
 import cv2
@@ -19,7 +19,6 @@ import mujoco
 import numpy as np
 import onnxruntime as ort
 import yaml
-
 
 CLIPS = {
     "aini": {
@@ -39,6 +38,8 @@ CLIPS = {
         "z": "mabu_zs.pkl",
     },
 }
+
+TERRAIN_CHOICES = ("plane", "gravel")
 
 
 def _project_root() -> Path:
@@ -70,17 +71,65 @@ def _load_yaml(path: Path) -> dict:
         return yaml.safe_load(f)
 
 
-def _make_runtime_xml(source_xml: Path, output_dir: Path) -> Path:
-    text = source_xml.read_text(encoding="utf-8")
+def _replace_meshdir(text: str, source_xml: Path) -> str:
     meshdir = (source_xml.parent / "../meshes").resolve().as_posix()
-    text = text.replace('meshdir="../meshes"', f'meshdir="{meshdir}"')
-    if 'name="floor"' not in text and "name='floor'" not in text:
-        plane = (
-            '<geom name="floor" type="plane" pos="0 0 0" size="20 20 0.05" '
-            'material="matplane" friction="1 0.005 0.0001" contype="1" conaffinity="15"/>\n'
-        )
-        text = text.replace("<worldbody>", "<worldbody>\n    " + plane, 1)
-    out = output_dir / "MAGICBOTZ1_sim2sim.xml"
+    return re.sub(r'meshdir=(["\'])(.*?)\1', f'meshdir="{meshdir}"', text, count=1)
+
+
+def _strip_floor_planes(text: str) -> str:
+    floor_plane = re.compile(
+        r'\n?[ \t]*<geom\b(?=[^>]*\bname\s*=\s*["\']floor["\'])(?=[^>]*\btype\s*=\s*["\']plane["\'])[^>]*/>[ \t]*',
+        flags=re.IGNORECASE,
+    )
+    return floor_plane.sub("", text)
+
+
+def _gravel_hfield_asset(nrow: int = 33, ncol: int = 33) -> str:
+    rng = np.random.default_rng(20260720)
+    height = rng.uniform(0.0, 1.0, size=(nrow, ncol)).astype(np.float32)
+    for _ in range(2):
+        height = (
+            height
+            + np.roll(height, 1, axis=0)
+            + np.roll(height, -1, axis=0)
+            + np.roll(height, 1, axis=1)
+            + np.roll(height, -1, axis=1)
+        ) / 5.0
+    height -= float(height.min())
+    max_height = float(height.max())
+    if max_height > 0.0:
+        height /= max_height
+    elevation = " ".join(f"{v:.6f}" for v in height.reshape(-1))
+    return f'<hfield name="sim2sim_gravel_hfield" nrow="{nrow}" ncol="{ncol}" size="20 20 0.04 0.02" elevation="{elevation}"/>'
+
+
+def _apply_runtime_terrain(text: str, terrain: str) -> str:
+    if terrain == "plane":
+        return text
+    if terrain != "gravel":
+        raise ValueError(f"Unsupported terrain {terrain!r}; expected one of {TERRAIN_CHOICES}")
+
+    text = _strip_floor_planes(text)
+    if 'name="sim2sim_gravel_hfield"' not in text and "name='sim2sim_gravel_hfield'" not in text:
+        hfield = _gravel_hfield_asset()
+        if "</asset>" in text:
+            text = text.replace("</asset>", f"    {hfield}\n  </asset>", 1)
+        else:
+            text = re.sub(r"(<mujoco\b[^>]*>)", rf"\1\n  <asset>\n    {hfield}\n  </asset>", text, count=1)
+    gravel_geom = (
+        '<geom name="sim2sim_gravel" type="hfield" hfield="sim2sim_gravel_hfield" '
+        'rgba="0.34 0.33 0.30 1" friction="1.2 0.02 0.001"/>'
+    )
+    text = text.replace("<worldbody>", "<worldbody>\n    " + gravel_geom, 1)
+    return text
+
+
+def _make_runtime_xml(source_xml: Path, output_dir: Path, *, terrain: str = "plane") -> Path:
+    text = source_xml.read_text(encoding="utf-8")
+    text = _replace_meshdir(text, source_xml)
+    text = _apply_runtime_terrain(text, terrain)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    out = output_dir / f"MAGICBOTZ1_sim2sim_{terrain}.xml"
     out.write_text(text, encoding="utf-8")
     return out
 
@@ -212,6 +261,7 @@ def run_clip(
     output_dir: Path,
     policy: ort.InferenceSession,
     render: bool,
+    terrain: str,
 ) -> dict:
     cfg = _load_yaml(project_root / "configs" / "robots" / "z1_23dof.yaml")
     meta = json.loads((artifact_dir / "FBcprAuxModel_41613312.meta.json").read_text(encoding="utf-8"))
@@ -233,7 +283,7 @@ def run_clip(
     control_dt = 1.0 / fps
     decimation = max(1, int(round(control_dt / sim_dt)))
 
-    runtime_xml = _make_runtime_xml(project_root / cfg["xml_path"], output_dir)
+    runtime_xml = _make_runtime_xml(project_root / cfg["xml_path"], output_dir, terrain=terrain)
     model = mujoco.MjModel.from_xml_path(str(runtime_xml))
     model.opt.timestep = sim_dt
     data = mujoco.MjData(model)
@@ -292,6 +342,7 @@ def run_clip(
         "steps": int(steps),
         "fps": fps,
         "decimation": int(decimation),
+        "terrain": terrain,
         "video": str(video_path) if render else None,
         "min_root_z": float(np.min(root_z)) if root_z else None,
         "final_root_z": float(root_z[-1]) if root_z else None,
@@ -306,6 +357,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--artifact-dir", type=Path, default=None)
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--clips", nargs="+", default=list(CLIPS.keys()), choices=sorted(CLIPS.keys()))
+    parser.add_argument(
+        "--terrain",
+        choices=TERRAIN_CHOICES,
+        default="plane",
+        help="plane uses only the robot MJCF floor; gravel removes that floor and adds one hfield.",
+    )
     parser.add_argument("--no-render", action="store_true")
     return parser.parse_args()
 
@@ -329,6 +386,7 @@ def main() -> None:
             output_dir=output_dir,
             policy=policy,
             render=not args.no_render,
+            terrain=args.terrain,
         )
         print(f"[sim2sim] done {clip}: {result}", flush=True)
         results.append(result)

@@ -18,6 +18,17 @@ Runner:
 UFO\.venv\Scripts\python.exe UFO\tools\z1\deploy_onnx_mujoco.py --clips aini kick cekongfan mabu
 ```
 
+Terrain selection:
+
+```powershell
+UFO\.venv\Scripts\python.exe UFO\tools\z1\deploy_onnx_mujoco.py --terrain plane
+UFO\.venv\Scripts\python.exe UFO\tools\z1\deploy_onnx_mujoco.py --terrain gravel
+```
+
+`plane` uses only the floor already present in the Z1 MJCF. `gravel` removes
+that floor and injects a single hfield, avoiding simultaneous floor and gravel
+contact geometry.
+
 Outputs:
 
 ```text

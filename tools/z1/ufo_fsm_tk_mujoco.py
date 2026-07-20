@@ -26,10 +26,9 @@ import joblib
 import mujoco
 import numpy as np
 import onnxruntime as ort
-from PIL import Image, ImageDraw, ImageFont, ImageTk
-
 from deploy_onnx_mujoco import (
     CLIPS,
+    TERRAIN_CHOICES,
     History,
     _actor_obs,
     _actuator_ids,
@@ -41,7 +40,7 @@ from deploy_onnx_mujoco import (
     _project_root,
     _raw_obs,
 )
-
+from PIL import Image, ImageDraw, ImageFont, ImageTk
 
 RENDER_WIDTH = 1120
 RENDER_HEIGHT = 700
@@ -155,7 +154,7 @@ class UfoTkMujocoApp:
         self.effort = np.asarray(control["effort_limit"], dtype=np.float32)
         self.action_scale = float(control["action_scale"]) * self.effort / self.kp
 
-        runtime_xml = _make_runtime_xml(self.project_root / cfg["xml_path"], self.output_dir)
+        runtime_xml = _make_runtime_xml(self.project_root / cfg["xml_path"], self.output_dir, terrain=args.terrain)
         self.model = mujoco.MjModel.from_xml_path(str(runtime_xml))
         self.model.opt.timestep = float(args.sim_dt)
         self.data = mujoco.MjData(self.model)
@@ -478,6 +477,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--policy-hz", type=float, default=50.0)
     parser.add_argument("--render-hz", type=float, default=30.0)
     parser.add_argument("--sim-dt", type=float, default=0.002)
+    parser.add_argument(
+        "--terrain",
+        choices=TERRAIN_CHOICES,
+        default="plane",
+        help="plane uses only the robot MJCF floor; gravel removes that floor and adds one hfield.",
+    )
     parser.add_argument("--reset-on-switch", action="store_true")
     return parser.parse_args()
 

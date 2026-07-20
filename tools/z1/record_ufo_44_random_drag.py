@@ -19,12 +19,12 @@ from pathlib import Path
 os.environ.setdefault("MUJOCO_GL", "egl")
 
 import json
+
 import mujoco
 import numpy as np
 import onnxruntime as ort
-import yaml
-
 from deploy_onnx_mujoco import (
+    TERRAIN_CHOICES,
     History,
     _actor_obs,
     _actuator_ids,
@@ -90,6 +90,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--seed", type=int, default=20260717)
     parser.add_argument("--provider", default="CPUExecutionProvider")
     parser.add_argument("--start", default="stagestand")
+    parser.add_argument(
+        "--terrain",
+        choices=TERRAIN_CHOICES,
+        default="plane",
+        help="plane uses only the robot MJCF floor; gravel removes that floor and adds one hfield.",
+    )
     return parser.parse_args()
 
 
@@ -121,7 +127,7 @@ def main() -> None:
     action_scale = float(control["action_scale"]) * effort / kp
 
     output_dir = artifact_dir / "mujoco_44_slider"
-    runtime_xml = _make_runtime_xml(project_root / cfg["xml_path"], output_dir)
+    runtime_xml = _make_runtime_xml(project_root / cfg["xml_path"], output_dir, terrain=args.terrain)
     model = mujoco.MjModel.from_xml_path(str(runtime_xml))
     model.opt.timestep = float(args.sim_dt)
     data = mujoco.MjData(model)

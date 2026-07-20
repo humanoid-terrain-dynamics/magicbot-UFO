@@ -45,6 +45,17 @@ Outputs are written to:
 checkpoints/Z1_UFO/compare_hand_vs_nohand/fakehand_32M/mujoco_sim2sim
 ```
 
+Terrain modes:
+
+```powershell
+UFO\.venv\Scripts\python.exe UFO\tools\z1\deploy_onnx_mujoco.py --terrain plane
+UFO\.venv\Scripts\python.exe UFO\tools\z1\deploy_onnx_mujoco.py --terrain gravel
+```
+
+`plane` uses only the floor already defined by the robot MJCF. `gravel` removes
+that MJCF floor and adds a single MuJoCo hfield, so the runtime XML never has
+both floor and gravel contact terrain.
+
 ## Real-Time Tkinter FSM Viewer
 
 Continuous switching mode:
