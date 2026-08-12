@@ -1,0 +1,35 @@
+{
+  "checkpoint_source": "D:\\Desktop_Files\\humanoid-terrain-dynamics\\UFO\\checkpoints\\Z1_UFO\\z1_mimic_clean_full_20_fb_1xa100_gpu1_1024env_nowandb_20260727_0110",
+  "files": {
+    "model/z1_policy/checkpoint/model/model.safetensors": "eca7121357c51dfc2448bee815ed1fa2ee38937a4a2b9e0347eaef892e1d831a",
+    "model/z1_policy/exported/backward_encoder.onnx": "478104c0658d37cdb956fffaff054a3a392f899e1c181e291a7fba6e1060608f",
+    "model/z1_policy/exported/policy.meta.json": "ff31cf10b220c2cd7d00cc93649d68cc54653991d687df32cd9e7190f3cbabad",
+    "model/z1_policy/exported/policy.onnx": "601d827165209faff084247fc82b9408c9fc0aad44eb0c8f10a48f4c58f95f38",
+    "model/z1_policy/z1_control_contract.json": "7d01e106628b0199d3c483632aef16e9788dc3645fc33fb829b5cbdaebb77f3c",
+    "robot/mjcf/MAGICBOTZ1.xml": "a14e542881c6eba0ac3c2d21297f1a174a7258d59f65bca87cde3bd2617d41dc"
+  },
+  "format_version": 1,
+  "robot": "z1_23dof",
+  "tracking_latents": [
+    "zs_0.pkl",
+    "zs_1.pkl",
+    "zs_10.pkl",
+    "zs_11.pkl",
+    "zs_12.pkl",
+    "zs_13.pkl",
+    "zs_14.pkl",
+    "zs_15.pkl",
+    "zs_16.pkl",
+    "zs_17.pkl",
+    "zs_18.pkl",
+    "zs_19.pkl",
+    "zs_2.pkl",
+    "zs_3.pkl",
+    "zs_4.pkl",
+    "zs_5.pkl",
+    "zs_6.pkl",
+    "zs_7.pkl",
+    "zs_8.pkl",
+    "zs_9.pkl"
+  ]
+}

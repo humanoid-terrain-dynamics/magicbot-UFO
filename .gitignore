@@ -1,0 +1,4 @@
+.venv/
+**/__pycache__/
+model/z1_policy/checkpoint/
+model/z1_policy/exported/policy.onnx
