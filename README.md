@@ -14,7 +14,7 @@ under the `z1_policy/` directory.
 Restore it at this repository root before running the deployment:
 
 ```powershell
-hf download PhangHongHao/UFO-Z1 z1_policy --repo-type dataset --local-dir .
+hf download PhangHongHao/UFO-Z1 --repo-type dataset --include "z1_policy/**" --local-dir .
 ```
 
 The downloaded artifact includes the policy checkpoint, `policy.onnx`,
