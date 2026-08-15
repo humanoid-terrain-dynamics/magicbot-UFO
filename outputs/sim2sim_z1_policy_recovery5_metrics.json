@@ -1,0 +1,8 @@
+{
+  "latent": "zs_0.pkl",
+  "steps": 5,
+  "min_root_z": 0.7184385932815698,
+  "max_base_tilt_rad": 0.03036700002849102,
+  "max_abs_torque": 22.060025741604022,
+  "final_root_z": 0.7008718086554042
+}

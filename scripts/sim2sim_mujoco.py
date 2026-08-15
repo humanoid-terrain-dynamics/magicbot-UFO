@@ -45,7 +45,19 @@ class History:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run a staged Z1 UFO policy in MuJoCo.")
     parser.add_argument("--bundle-root", type=Path, default=Path(__file__).resolve().parents[1])
-    parser.add_argument("--latent", default="zs_0.pkl", help="File from model/z1_policy/tracking_inference.")
+    parser.add_argument(
+        "--policy-name",
+        default="z1_policy",
+        help="Directory name under bundle/model (for example z1_policy or z1_policy_recovery5).",
+    )
+    parser.add_argument(
+        "--metrics-path",
+        type=Path,
+        help="Output JSON path; defaults to outputs/sim2sim_<policy-name>_metrics.json.",
+    )
+    parser.add_argument("--latent-dir", type=Path, help="Override the tracking latent directory.")
+    parser.add_argument("--task-manifest", type=Path, help="Override the clean-task name manifest.")
+    parser.add_argument("--latent", default="zs_0.pkl", help="Tracking latent filename.")
     parser.add_argument(
         "--task-name",
         help="Task name rendered in the interactive MuJoCo window; defaults to the selected latent name.",
@@ -98,7 +110,9 @@ def load_task_names(manifest_path: Path, expected_count: int) -> list[str]:
 def main() -> None:
     args = parse_args()
     root = args.bundle_root.resolve()
-    model_root = root / "model/z1_policy"
+    model_root = root / "model" / args.policy_name
+    if not model_root.is_dir():
+        raise FileNotFoundError(f"Policy bundle not found: {model_root}")
     manifest = json.loads((model_root / "release_manifest.json").read_text(encoding="utf-8"))
     for rel, expected in manifest["files"].items():
         got = sha256(root / rel)
@@ -108,14 +122,16 @@ def main() -> None:
     meta = json.loads((model_root / "exported/policy.meta.json").read_text(encoding="utf-8"))
     if meta["actor_obs_dim"] != 631 or meta["output_action_dim"] != 23 or len(contract["control_joint_names"]) != 23:
         raise RuntimeError("Z1 policy/control interface must be actor_obs[*,631] -> action[*,23].")
-    latent_paths = sorted(model_root.joinpath("tracking_inference").glob("zs_*.pkl"), key=lambda p: int(p.stem.split("_")[-1]))
+    latent_root = (args.latent_dir.resolve() if args.latent_dir else model_root / "tracking_inference")
+    latent_paths = sorted(latent_root.glob("zs_*.pkl"), key=lambda p: int(p.stem.split("_")[-1]))
     if not latent_paths:
-        raise FileNotFoundError("No tracking latents found under model/z1_policy/tracking_inference")
-    requested = model_root / "tracking_inference" / args.latent
+        raise FileNotFoundError(f"No tracking latents found under {latent_root}")
+    requested = latent_root / args.latent
     if requested not in latent_paths:
         raise ValueError(f"Unknown latent {args.latent}; choose one of {[p.name for p in latent_paths]}")
     latent_index = latent_paths.index(requested)
-    task_names = load_task_names(root / "docs/z1_clean20_md5_remote.txt", len(latent_paths))
+    task_manifest = args.task_manifest.resolve() if args.task_manifest else root / "docs/z1_clean20_md5_remote.txt"
+    task_names = load_task_names(task_manifest, len(latent_paths))
     task_name = args.task_name or task_names[latent_index]
     latents = [np.asarray(joblib.load(path), dtype=np.float32) for path in latent_paths]
     for path, sequence in zip(latent_paths, latents):
@@ -251,8 +267,9 @@ def main() -> None:
         if viewer is not None:
             viewer.close()
     result = {"latent": latent_paths[latent_index].name, "steps": steps, "min_root_z": min_root_z, "max_base_tilt_rad": max_tilt, "max_abs_torque": max_torque, "final_root_z": float(data.qpos[2])}
-    (root / "outputs").mkdir(exist_ok=True)
-    (root / "outputs/sim2sim_metrics.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+    metrics_path = args.metrics_path.resolve() if args.metrics_path else root / "outputs" / f"sim2sim_{args.policy_name}_metrics.json"
+    metrics_path.parent.mkdir(parents=True, exist_ok=True)
+    metrics_path.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(result, indent=2))
 
 

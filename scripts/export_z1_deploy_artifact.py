@@ -54,7 +54,19 @@ def parse_args() -> argparse.Namespace:
         default=Path(__file__).resolve().parents[2]
         / "checkpoints/Z1_UFO/z1_mimic_clean_full_20_fb_1xa100_gpu1_1024env_nowandb_20260727_0110",
     )
+    parser.add_argument(
+        "--model-path",
+        type=Path,
+        help="Explicit .safetensors file. If omitted, discover one under --checkpoint-root.",
+    )
     parser.add_argument("--bundle-root", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument("--policy-name", default="z1_policy", help="Directory name under bundle/model.")
+    parser.add_argument(
+        "--latent-source",
+        type=Path,
+        help="Directory containing zs_*.pkl files. Defaults to checkpoint tracking_inference when present.",
+    )
+    parser.add_argument("--task-manifest", type=Path, help="Clean-task name manifest to copy into the bundle.")
     parser.add_argument("--device", default="cpu", choices=("cpu", "cuda"))
     return parser.parse_args()
 
@@ -67,22 +79,44 @@ def main() -> None:
     if not (source_root / "humanoidverse").is_dir():
         raise FileNotFoundError(f"Not a UFO source root: {source_root}")
 
-    source_model = checkpoint_root / "checkpoint/model/model_best_mpjpe_l_963p743_global48009216.safetensors"
+    if args.model_path is not None:
+        source_model = args.model_path.resolve()
+    else:
+        candidates = [
+            checkpoint_root / "checkpoint/model/model_best_mpjpe_l_963p743_global48009216.safetensors",
+            checkpoint_root / "model/model.safetensors",
+            checkpoint_root / "checkpoint/model/model.safetensors",
+        ]
+        candidates.extend(sorted(checkpoint_root.glob("*.safetensors")))
+        candidates.extend(sorted(checkpoint_root.glob("**/*.safetensors")))
+        source_model = next((path for path in candidates if path.is_file()), None)
+        if source_model is None:
+            raise FileNotFoundError(f"No .safetensors model found under {checkpoint_root}")
     if not source_model.is_file():
         raise FileNotFoundError(f"Selected checkpoint is missing: {source_model}")
 
-    model_dir = bundle_root / "model/z1_policy"
+    model_dir = bundle_root / "model" / args.policy_name
     checkpoint_dir = model_dir / "checkpoint/model"
     exported_dir = model_dir / "exported"
     latent_dir = model_dir / "tracking_inference"
     robot_dir = bundle_root / "robot"
-    for source, target in (
-        (checkpoint_root / "config.json", checkpoint_dir / "config.json"),
-        (checkpoint_root / "init_kwargs.json", checkpoint_dir / "init_kwargs.json"),
-        (source_model, checkpoint_dir / "model.safetensors"),
-    ):
+    task_manifest = args.task_manifest.resolve() if args.task_manifest else Path(__file__).resolve().parents[1] / "docs/z1_clean20_md5_remote.txt"
+    if task_manifest.is_file():
+        link_or_copy(task_manifest, bundle_root / "docs/z1_clean20_md5_remote.txt")
+    config_source = next(
+        (path for path in (source_model.parent / "config.json", checkpoint_root / "config.json") if path.is_file()),
+        None,
+    )
+    init_source = next(
+        (path for path in (source_model.parent / "init_kwargs.json", checkpoint_root / "init_kwargs.json") if path.is_file()),
+        None,
+    )
+    if config_source is None or init_source is None:
+        raise FileNotFoundError("Checkpoint must provide config.json and init_kwargs.json")
+    for source, target in ((config_source, checkpoint_dir / "config.json"), (init_source, checkpoint_dir / "init_kwargs.json"), (source_model, checkpoint_dir / "model.safetensors")):
         link_or_copy(source, target)
-    for latent in sorted((checkpoint_root / "tracking_inference").glob("*.pkl")):
+    latent_source = args.latent_source.resolve() if args.latent_source else checkpoint_root / "tracking_inference"
+    for latent in sorted(latent_source.glob("zs_*.pkl")):
         link_or_copy(latent, latent_dir / latent.name)
 
     robot_yaml = source_root / "configs/robots/z1_23dof.yaml"
@@ -133,7 +167,10 @@ def main() -> None:
     backward_inputs = {item.name for item in ort.InferenceSession(str(exported_dir / "backward_encoder.onnx")).get_inputs()}
     if not {"state", "privileged_state"}.issubset(backward_inputs):
         raise ValueError(f"Unexpected Z1 backward encoder inputs: {sorted(backward_inputs)}")
-    export_spec.update({"robot_xml": "robot/mjcf/MAGICBOTZ1.xml", "control_contract": "model/z1_policy/z1_control_contract.json"})
+    export_spec.update({
+        "robot_xml": "robot/mjcf/MAGICBOTZ1.xml",
+        "control_contract": f"model/{args.policy_name}/z1_control_contract.json",
+    })
     (exported_dir / "policy.meta.json").write_text(json.dumps(export_spec, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
     required = [
