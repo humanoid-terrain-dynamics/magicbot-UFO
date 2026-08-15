@@ -1,0 +1,18 @@
+{
+  "actor_input_dim": 375,
+  "actor_input_dims": {
+    "history_actor": 300,
+    "last_action": 23,
+    "state": 52
+  },
+  "actor_input_keys": [
+    "state",
+    "last_action",
+    "history_actor"
+  ],
+  "actor_obs_dim": 631,
+  "control_contract": "model/z1_policy_recovery5/z1_control_contract.json",
+  "output_action_dim": 23,
+  "robot_xml": "robot/mjcf/MAGICBOTZ1.xml",
+  "z_dim": 256
+}
