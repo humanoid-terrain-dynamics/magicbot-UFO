@@ -51,7 +51,7 @@ import numpy as np
 
 # tools/z1/ is sys.path[0] when run as a script, so deploy_onnx_mujoco is importable
 # the same way ufo_44_slider_tk_mujoco.py imports it.
-from deploy_onnx_mujoco import TERRAIN_CHOICES, _load_yaml, _make_runtime_xml, _project_root
+from deploy_onnx_mujoco import _load_yaml, _make_runtime_xml, _project_root
 from PIL import Image, ImageDraw, ImageFont, ImageTk
 
 RENDER_WIDTH = 1280
@@ -159,6 +159,28 @@ def clip_speed(motion: MotionClip) -> float:
     return float(np.linalg.norm(delta_xy, axis=1).mean() * motion.fps)
 
 
+# Clearance above the floor after FK grounding (same convention as
+# tools/z1/_npz_viewer_core.py). Root z only.
+_FLOOR_CLEARANCE = 0.02
+
+
+def _lift_to_ground(model: mj.MjModel, data: mj.MjData) -> None:
+    """Lift the root z just enough to clear floor penetration after FK.
+
+    Same logic as ``_npz_viewer_core.lift_to_ground``: scan ``data.contact`` for
+    ``dist < 0`` and raise only ``data.qpos[2]`` by the deepest penetration plus
+    ``_FLOOR_CLEARANCE``, then re-forward. No-op when nothing penetrates.
+    """
+    deepest = 0.0
+    for contact_index in range(data.ncon):
+        contact = data.contact[contact_index]
+        if contact.dist < 0.0:
+            deepest = max(deepest, float(-contact.dist))
+    if deepest > 0.0:
+        data.qpos[2] += deepest + _FLOOR_CLEARANCE
+        mj.mj_forward(model, data)
+
+
 class App:
     def __init__(
         self,
@@ -166,14 +188,13 @@ class App:
         loop_each: bool = False,
         max_frames: int = 0,
         robot_config: Path | None = None,
-        terrain: str = "plane",
     ) -> None:
         project_root = _project_root()
         robot_cfg_path = robot_config or (project_root / "configs" / "robots" / "z1_23dof.yaml")
         cfg = _load_yaml(robot_cfg_path)
         out_dir = project_root / "cache" / "motion_vis"
         out_dir.mkdir(parents=True, exist_ok=True)
-        runtime_xml = _make_runtime_xml(project_root / cfg["xml_path"], out_dir, terrain=terrain)
+        runtime_xml = _make_runtime_xml(project_root / cfg["xml_path"], out_dir)
 
         self.model = mj.MjModel.from_xml_path(str(runtime_xml))
         self.model.vis.global_.offwidth = RENDER_WIDTH
@@ -494,6 +515,7 @@ class App:
         self.data.qpos[7 : 7 + clip.dof_pos.shape[1]] = clip.dof_pos[frame_idx]
         self.data.qvel[:] = 0.0
         mj.mj_forward(self.model, self.data)
+        _lift_to_ground(self.model, self.data)
 
     def render_current(self) -> None:
         clip = self.motions[self.idx]
@@ -574,12 +596,6 @@ def parse_args() -> argparse.Namespace:
         help="Explicit pkl file(s) to browse; overrides --folder.",
     )
     parser.add_argument("--robot-config", type=Path, default=None, help="Robot yaml (default: configs/robots/z1_23dof.yaml).")
-    parser.add_argument(
-        "--terrain",
-        choices=TERRAIN_CHOICES,
-        default="plane",
-        help="plane uses only the robot MJCF floor; gravel removes that floor and adds one hfield.",
-    )
     parser.add_argument("--loop_each", action="store_true", help="Loop each clip until you switch.")
     parser.add_argument("--max_frames", type=int, default=0, help="0 = full clip.")
     return parser.parse_args()
@@ -602,7 +618,6 @@ def main() -> None:
         loop_each=args.loop_each,
         max_frames=args.max_frames,
         robot_config=args.robot_config,
-        terrain=args.terrain,
     ).run()
     print("\nDone!")
 

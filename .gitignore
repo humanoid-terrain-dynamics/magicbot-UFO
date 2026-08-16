@@ -32,6 +32,7 @@ tracking_inference/
 
 # Scratch / temporary working dirs (local mimic review views, contact audits)
 AAAtmp/
+docs/
 
 # Large artifacts: keep locally or upload to Hugging Face, not GitHub
 *.ckpt
@@ -65,3 +66,5 @@ humanoidverse/data/lafan_29dof.pkl
 # Z1 mimic motion clips - part of the z1_mimic dataset
 humanoidverse/data/z1_mimic_robot_state_npz/*.npz
 humanoidverse/data/z1_mimic_robot_state_npz_selected/*.npz
+humanoidverse/data/z1_mimic_datasets/
+humanoidverse/data/mimic_datasets/

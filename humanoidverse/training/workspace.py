@@ -18,6 +18,7 @@ import torch
 
 torch.set_float32_matmul_precision("high")
 
+import gc
 import json
 import time
 import typing as tp
@@ -1042,6 +1043,12 @@ class Workspace:
         if not isinstance(self.cfg.env, HumanoidVerseMjlabConfig):
             self.agent._model.to(self.cfg.agent.model.device)
         self.agent._model.train()
+
+        # Tracking evaluation temporarily materializes complete trajectories on
+        # CUDA. Return its allocator cache before stepping the Warp simulation.
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
         return evaluation_results
 

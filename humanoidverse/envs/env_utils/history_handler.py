@@ -31,7 +31,9 @@ class HistoryHandler:
             return
         assert set(self.buffer_config.keys()) == set(self.history.keys()), f"History keys mismatch\n{self.buffer_config.keys()}\n{self.history.keys()}"
         for key in self.history.keys():
-            self.history[key][reset_ids] *= 0.
+            # Assignment clears NaNs left by a prior rollout; multiplication does not
+            # because IEEE-754 defines NaN * 0 as NaN.
+            self.history[key][reset_ids] = 0.0
 
     def add(self, key: str, value: Tensor):
         assert key in self.history.keys(), f"Key {key} not found in history"

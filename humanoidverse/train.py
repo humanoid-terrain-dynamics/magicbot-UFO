@@ -147,10 +147,11 @@ def build_ufo_mjlab_config(
     resolved_update_z_every_step = (
         _default_update_z_every_step(agent) if update_z_every_step is None else int(update_z_every_step)
     )
+    disable_compile = os.environ.get("UFO_DISABLE_COMPILE", "0").lower() in {"1", "true", "yes", "on"}
     selected = build_agent_preset(
         agent=agent,
         device=agent_device,
-        compile=not distributed_sync,
+        compile=not distributed_sync and not disable_compile,
         update_z_every_step=resolved_update_z_every_step,
         lr_scale=lr_scale,
         clip_grad_norm=clip_grad_norm,
@@ -465,7 +466,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--disable-dr", action="store_true", help="Disable domain randomization for training.")
     parser.add_argument("--disable-obs-noise", action="store_true", help="Disable observation noise for training.")
     parser.add_argument("--lr-scale", type=float, default=1.0, help="Scale FB learning rates. TeCH preset ignores this value.")
-    parser.add_argument("--clip-grad-norm", type=float, default=0.0, help="Enable FB actor/FB gradient clipping when > 0.")
+    parser.add_argument(
+        "--clip-grad-norm",
+        type=float,
+        default=0.0,
+        help="Clip every FB optimizer branch (FB maps, actor, discriminator, critic, and auxiliary critic) when > 0.",
+    )
     parser.add_argument(
         "--cartwheel-aux-safe",
         action="store_true",

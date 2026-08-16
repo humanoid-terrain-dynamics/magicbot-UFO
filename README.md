@@ -59,6 +59,11 @@ fallAndGetUp1_subject1_f153_f294
 fallAndGetUp1_subject1_f1765_f1900
 ```
 
+The raw source folder `humanoidverse/data/z1_mimic_datasets/` is an internal
+asset and is not distributed in this repository. If access is required, contact
+the dataset author or internal maintainer before requesting or reusing those
+files.
+
 Example training commands:
 
 ```bash

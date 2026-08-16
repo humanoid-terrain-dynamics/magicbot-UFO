@@ -26,6 +26,10 @@ DEFAULT_CAMERA_DISTANCE = 3.0
 DEFAULT_CAMERA_ELEVATION = -20.0
 DEFAULT_CAMERA_AZIMUTH = 90.0
 
+# Lift applied to clear the floor after FK (same convention as the reference
+# boxing-recovery viewer: deepest penetration + this clearance, root z only).
+_FLOOR_CLEARANCE = 0.02
+
 Z1_POLICY_JOINT_NAMES = [
     "left_hip_pitch_joint",
     "left_hip_roll_joint",
@@ -163,6 +167,25 @@ def create_free_camera() -> mj.MjvCamera:
     return camera
 
 
+def lift_to_ground(model: mj.MjModel, data: mj.MjData) -> None:
+    """Lift the root z just enough to clear floor penetration after FK.
+
+    Mirrors the reference boxing-recovery viewer's ``apply_motion_frame``:
+    scan ``data.contact`` for ``dist < 0`` (requires ``mj_forward`` to have run
+    and the model to have a colliding floor + robot geoms), and on the deepest
+    penetration raise only ``data.qpos[2]`` by ``deepest + _FLOOR_CLEARANCE``,
+    then re-forward. No-op when nothing penetrates.
+    """
+    deepest = 0.0
+    for contact_index in range(data.ncon):
+        contact = data.contact[contact_index]
+        if contact.dist < 0.0:
+            deepest = max(deepest, float(-contact.dist))
+    if deepest > 0.0:
+        data.qpos[2] += deepest + _FLOOR_CLEARANCE
+        mj.mj_forward(model, data)
+
+
 def apply_motion_frame(model: mj.MjModel, data: mj.MjData, motion: MotionClip, frame_idx: int) -> np.ndarray:
     data.qpos[:] = model.qpos0
     data.qpos[:3] = motion.root_pos[frame_idx]
@@ -182,6 +205,7 @@ def apply_motion_frame(model: mj.MjModel, data: mj.MjData, motion: MotionClip, f
             data.qpos[int(model.jnt_qposadr[joint_id])] = value
     data.qvel[:] = 0.0
     mj.mj_forward(model, data)
+    lift_to_ground(model, data)
     return motion.root_pos[frame_idx]
 
 
