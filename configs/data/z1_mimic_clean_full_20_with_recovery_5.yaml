@@ -1,0 +1,47 @@
+robot_config: configs/robots/z1_23dof.yaml
+datasets:
+- name: z1_mimic_clean_full_20
+  format: robot_state_npz
+  source_path:
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_robot_state_npz/aini.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_robot_state_npz/chaofeng.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_robot_state_npz/chi6.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_robot_state_npz/huantuiti.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_robot_state_npz/jiequandao.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_robot_state_npz/kick.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_robot_state_npz/lalacao.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_robot_state_npz/lvdong.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_robot_state_npz/mabu.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_robot_state_npz/punch.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_robot_state_npz/shanggouquan.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_robot_state_npz/simplerun.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_robot_state_npz/stagesquat.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_robot_state_npz/stagestand.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_robot_state_npz/taiquan.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_robot_state_npz/xiti.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_robot_state_npz/xuanfengti.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_robot_state_npz/zhizaoweilai.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_robot_state_npz/zhuanshen.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_robot_state_npz/zuhequan.npz
+  weight: 0.80
+  fps: 50
+  auto_build:
+    train_clip_seconds: 999.0
+    clip_stride_seconds: 999.0
+    keep_short: true
+    min_clip_seconds: 1.0
+- name: z1_mimic_recovery_5
+  format: robot_state_npz
+  source_path:
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_recovery_npz/robot_state_npz/fallAndGetUp1_subject1_f1246_f1292.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_recovery_npz/robot_state_npz/fallAndGetUp1_subject1_f1375_f1436.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_recovery_npz/robot_state_npz/fallAndGetUp1_subject1_f1534_f1664.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_recovery_npz/robot_state_npz/fallAndGetUp1_subject1_f153_f294.npz
+  - humanoidverse/data/robots/z1_mimic_dataset/z1_mimic_recovery_npz/robot_state_npz/fallAndGetUp1_subject1_f1765_f1900.npz
+  weight: 0.20
+  fps: 50
+  auto_build:
+    train_clip_seconds: 999.0
+    clip_stride_seconds: 999.0
+    keep_short: true
+    min_clip_seconds: 1.0

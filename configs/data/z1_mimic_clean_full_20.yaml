@@ -1,0 +1,32 @@
+robot_config: configs/robots/z1_23dof.yaml
+datasets:
+- name: z1_mimic_clean_full_20
+  format: robot_state_npz
+  source_path:
+  - humanoidverse/data/z1_mimic_robot_state_npz/aini.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz/chaofeng.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz/chi6.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz/huantuiti.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz/jiequandao.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz/kick.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz/lalacao.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz/lvdong.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz/mabu.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz/punch.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz/shanggouquan.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz/simplerun.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz/stagesquat.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz/stagestand.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz/taiquan.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz/xiti.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz/xuanfengti.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz/zhizaoweilai.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz/zhuanshen.npz
+  - humanoidverse/data/z1_mimic_robot_state_npz/zuhequan.npz
+  weight: 1.0
+  fps: 50
+  auto_build:
+    train_clip_seconds: 999.0
+    clip_stride_seconds: 999.0
+    keep_short: true
+    min_clip_seconds: 1.0
