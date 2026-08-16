@@ -31,6 +31,50 @@ The interactive local artifact is:
 The slider lets you inspect motion indices `0..43`, nudge with Left/Right,
 reset with `R`, pause with Space, and quit with `Q`.
 
+## Available Z1 Training Sets
+
+This workstream currently keeps two explicit Z1 FB training manifests in-tree:
+
+| Training set | Manifest | Composition | Intended use |
+| --- | --- | --- | --- |
+| `20tasks` | `configs/data/z1_mimic_clean_full_20.yaml` | 20 base Z1 task motions, weight `1.0` | Base FB training on the formal 20-task set |
+| `20tasks + recovery` | `configs/data/z1_mimic_clean_full_20_with_recovery_5.yaml` | 20 base Z1 task motions at weight `0.80` plus 5 recovery clips at weight `0.20` | Recovery-augmented FB training |
+
+The current `20tasks` manifest contains these 20 base motions:
+
+```text
+aini, chaofeng, chi6, huantuiti, jiequandao, kick, lalacao, lvdong, mabu,
+punch, shanggouquan, simplerun, stagesquat, stagestand, taiquan, xiti,
+xuanfengti, zhizaoweilai, zhuanshen, zuhequan
+```
+
+The recovery-augmented manifest keeps the same 20 base tasks and adds these 5
+training-only recovery clips:
+
+```text
+fallAndGetUp1_subject1_f1246_f1292
+fallAndGetUp1_subject1_f1375_f1436
+fallAndGetUp1_subject1_f1534_f1664
+fallAndGetUp1_subject1_f153_f294
+fallAndGetUp1_subject1_f1765_f1900
+```
+
+Example training commands:
+
+```bash
+./run_train.sh \
+  --agent fb \
+  --robot-config configs/robots/z1_23dof.yaml \
+  --data-manifest configs/data/z1_mimic_clean_full_20.yaml
+```
+
+```bash
+./run_train.sh \
+  --agent fb \
+  --robot-config configs/robots/z1_23dof.yaml \
+  --data-manifest configs/data/z1_mimic_clean_full_20_with_recovery_5.yaml
+```
+
 ## Prior to Outcome
 
 The Z1 outcome is driven by a curated motion prior rather than a hand-authored
@@ -79,6 +123,19 @@ The public Z1 dataset/checkpoint mirror is:
 
 ```text
 https://huggingface.co/datasets/PhangHongHao/UFO-Z1
+```
+
+The best `z1_mimic_clean_full_20_with_recovery_5` model checkpoint currently
+tracked for deployment is available at:
+
+```text
+https://huggingface.co/datasets/PhangHongHao/UFO-Z1/tree/main/z1_mimic_clean_full_20_with_recovery_5/checkpoints/12800000/model/
+```
+
+The model weights are stored at:
+
+```text
+z1_mimic_clean_full_20_with_recovery_5/checkpoints/12800000/model/model.safetensors
 ```
 
 Download the best Z1 FB checkpoint into the local checkpoint layout:
